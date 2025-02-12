@@ -55,7 +55,7 @@ export function CreateTaskForm({ handleSubmitTask }: Props) {
       />
       <Button
         type="submit"
-        className="rounded-full w-full flex items-center justify-center text-lg"
+        className="rounded-lg w-full flex items-center justify-center text-lg"
       >
         <Plus strokeWidth={2} />
         Iniciar Nueva Tarea

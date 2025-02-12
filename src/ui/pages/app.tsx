@@ -1,44 +1,36 @@
 import React from "react"
 import { Button } from "../components/shared/button"
 import { CreateTaskForm } from "../components/create-task-form"
-import { Play } from "lucide-react"
 import { Separator } from "../components/shared/separator"
+import { PlayIcon, StopIcon } from "@heroicons/react/24/solid"
+import { formatDistanceHHMMSS } from "../lib/utils"
 
 export function AppPage() {
-  const [isSessionStarted, setIsSessionStarted] = React.useState(false)
-  const [elapsedTime, setElapsedTime] = React.useState(0)
   const [currentTask, setCurrentTask] = React.useState<Task | null>(null)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [sessionStartAt, setSessionStartAt] = React.useState<Date | null>()
+  const [currentTime, setCurrentTime] = React.useState(new Date())
 
-  interface Task {
+  type Task = {
     empresa: string
     tipoDeTarea: string
     expediente: string
   }
 
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (isSessionStarted) {
-      interval = setInterval(() => {
-        setElapsedTime((prevTime) => prevTime + 1)
-      }, 1000)
-    }
-    return () => clearInterval(interval)
-  }, [isSessionStarted])
+  React.useEffect(function timer() {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
 
-  const formatTime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
-  }
+    return () => clearInterval(interval)
+  }, []);
 
   const handleStartSession = () => {
-    setIsSessionStarted(true)
+    setSessionStartAt(new Date())
   }
 
   const handleStopSession = () => {
-    setIsSessionStarted(false)
-    setElapsedTime(0)
+    setSessionStartAt(null)
     setCurrentTask(null)
   }
 
@@ -47,10 +39,13 @@ export function AppPage() {
     e.preventDefault()
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData);
-    setCurrentTask({
-      empresa: String(data.empresa),
-      tipoDeTarea: String(data.tipoDeTarea),
-      expediente: String(data.expediente),
+    //setCurrentTask({
+    //  empresa: String(data.empresa),
+    //  tipoDeTarea: String(data.tipoDeTarea),
+    //  expediente: String(data.expediente),
+    //})
+    window.electron.createTaskSubmit({
+      user_id: "1"
     })
   }
 
@@ -61,25 +56,32 @@ export function AppPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        {!isSessionStarted ? (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-white p-8 w-full max-w-md">
+        {!sessionStartAt ? (
           <>
             <Button
               onClick={handleStartSession}
               variant="default"
-              className="w-full px-8 flex items-center rounded-full py-6 justify-center text-xl font-semibold"
+              className="w-full px-8 flex items-center rounded-lg py-6 justify-center text-xl font-semibold uppercase"
             >
-              <Play size={24} />
-              Comenzar Sesión
+              Iniciar temporizador
+              <PlayIcon className="size-6" />
             </Button>
           </>
         ) : (
           <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-4xl font-bold text-indigo-600">{formatTime(elapsedTime)}</h2>
-              <p className="text-gray-600 mt-2">Tiempo transcurrido</p>
+            <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg">
+              <h2 className="text-2xl font-bold">{formatDistanceHHMMSS(sessionStartAt, currentTime)}</h2>
+              <Button
+                onClick={handleStopSession}
+                variant="destructive"
+                className="rounded-lg p-4"
+              >
+                <StopIcon className="size-6" />
+              </Button>
             </div>
+            <Separator />
 
             {currentTask ? (
               <div className="bg-indigo-50 rounded-lg p-4 space-y-2">
@@ -94,7 +96,7 @@ export function AppPage() {
                   <span className="font-medium">Expediente:</span> {currentTask.expediente}
                 </p>
                 <Button
-                  className="w-full rounded-full flex items-center justify-center"
+                  className="w-full rounded-lg flex items-center justify-center"
                   onClick={() => setIsModalOpen(true)}
                 >
                   Actualizar Tarea
@@ -103,14 +105,6 @@ export function AppPage() {
             ) : (
               <CreateTaskForm handleSubmitTask={handleSubmitTask} />
             )}
-            <Separator />
-            <Button
-              onClick={handleStopSession}
-              variant="destructive"
-              className="rounded-full w-full flex items-center justify-center text-lg"
-            >
-              Detener Sesión
-            </Button>
           </div>
         )}
 
@@ -120,21 +114,21 @@ export function AppPage() {
               <h3 className="text-lg font-semibold mb-4">Actualizar Tarea</h3>
               <div className="space-y-2">
                 <Button
-                  className="w-full rounded-full"
+                  className="w-full rounded-lg"
                   onClick={() => handleUpdateTask("Completar")}
                   variant="success"
                 >
                   Completar
                 </Button>
                 <Button
-                  className="w-full rounded-full"
+                  className="w-full rounded-lg"
                   onClick={() => handleUpdateTask("Pausar")}
                   variant="info"
                 >
                   Pausar
                 </Button>
                 <Button
-                  className="w-full rounded-full"
+                  className="w-full rounded-lg"
                   onClick={() => handleUpdateTask("Marcar como no completada")}
                   variant="destructive"
                 >
@@ -143,7 +137,7 @@ export function AppPage() {
               </div>
               <Separator className="my-4" />
               <Button
-                className="w-full rounded-full"
+                className="w-full rounded-lg"
                 onClick={() => setIsModalOpen(false)}
                 variant="outline"
               >

@@ -1,12 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/shared/button";
+import { Loader2 } from "lucide-react";
 
 export function SignInPage() {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSubmitting(true);
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData);
     window.electron.signInSubmit({
@@ -15,18 +19,32 @@ export function SignInPage() {
     });
   }
 
-  React.useEffect(() => {
-    window.electron.signInResult((path: string) => {
-      console.log({ path })
-      navigate(path)
+  React.useEffect(function checkToken() {
+    window.electron.checkToken().then((data) => {
+      if (data.success) {
+        navigate("/app");
+      }
     })
   }, [navigate])
 
+  React.useEffect(function signInResult() {
+    window.electron.signInResult((data: SignInResult) => {
+      setSubmitting(false);
+      if (data.success) {
+        setError("");
+        navigate("/app");
+      } else {
+        setError(data.error);
+      }
+    });
+  }, [navigate])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="p-8 w-full max-w-md">
         <form onSubmit={handleSubmit}>
           <h1 className="text-2xl font-bold mb-4">Iniciar sesión</h1>
+          <em className="text-red-500">{error}</em>
           <div className="mb-4">
             <label className="font-bold" htmlFor="email">Correo</label>
             <input
@@ -49,12 +67,19 @@ export function SignInPage() {
           </div>
           <div className="flex justify-end">
             <Button
-              className="w-full rounded-full font-semibold"
+              disabled={submitting}
+              className="w-full rounded-lg font-semibold"
               name="intent"
               value="sing-in"
               type="submit"
             >
-              Iniciar sesión
+              {submitting ? (
+                <>
+                  Iniciando... <Loader2 className="animate-spin ml-2" />
+                </>
+              ) :
+                "Iniciar sesión"
+              }
             </Button>
           </div>
         </form>

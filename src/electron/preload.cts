@@ -2,16 +2,22 @@
 import electron from 'electron'
 
 electron.contextBridge.exposeInMainWorld('electron', {
-	getStaticData: () => console.log({ static: "static" }),
+	checkToken: async () => await ipcInvoke('checkToken'),
 	signInSubmit: (data: SignInFormData) => {
 		ipcSend('signInSubmit', data);
 	},
 	signInResult: (callback) => {
-		ipcOn('signInResult', (path) => {
-			callback(path)
+		ipcOn('signInResult', (data) => {
+			callback(data)
 		})
+	},
+	createTaskSubmit: (data: CreateTaskFormData) => {
+		ipcSend('createTaskSubmit', data);
 	}
 } satisfies Window['electron'])
+
+// ----------------------------
+// ----------------------------
 
 function ipcInvoke<Key extends keyof EventPayloadMapping>(
 	key: Key
