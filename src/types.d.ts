@@ -19,18 +19,27 @@ type CreateTaskFormData = {
   user_id: string
 }
 
-type JWTToken = {
+type JWTTokenData = {
   id: numer,
   name: string,
   email: string,
   role: string,
 }
 
+type Session = { start_at: Date, id: number, end_at: Date | null }
+
 interface Window {
   electron: {
-    checkToken: () => Promise<{ success: boolean }>
     signInSubmit: (data: SignInFormData) => void
     signInResult: (callback: (data: SignInResult) => void) => void
+
+    checkToken: () => Promise<{ success: boolean, user: JWTTokenData }>
+
+    startSession: () => void
+    startSessionResult: (callback: (data: { success: boolean, session: Omit<Session, "end_at"> }) => void) => void
+    endSession: (id: number) => void
+    endSessionResult: (callback: (data: { success: boolean, session: Session }) => void) => void
+
     createTaskSubmit: (data: CreateTaskFormData) => void
   }
 }
@@ -38,6 +47,13 @@ interface Window {
 type EventPayloadMapping = {
   signInSubmit: SignInFormData
   signInResult: SignInResult
+
+  checkToken: Promise<{ success: boolean, user: JWTTokenData }>
+
+  startSession: void
+  startSessionResult: { success: boolean, session: Omit<Session, "end_at"> }
+  endSession: number
+  endSessionResult: { success: boolean, session: Session }
+
   createTaskSubmit: CreateTaskFormData
-  checkToken: Promise<{ success: boolean }>
 }

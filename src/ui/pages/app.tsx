@@ -2,7 +2,7 @@ import React from "react"
 import { Button } from "../components/shared/button"
 import { CreateTaskForm } from "../components/create-task-form"
 import { Separator } from "../components/shared/separator"
-import { PlayIcon, StopIcon } from "@heroicons/react/24/solid"
+import { StopIcon } from "@heroicons/react/24/solid"
 import { formatDistanceHHMMSS } from "../lib/utils"
 
 export function AppPage() {
@@ -25,10 +25,6 @@ export function AppPage() {
     return () => clearInterval(interval)
   }, []);
 
-  const handleStartSession = () => {
-    setSessionStartAt(new Date())
-  }
-
   const handleStopSession = () => {
     setSessionStartAt(null)
     setCurrentTask(null)
@@ -37,8 +33,8 @@ export function AppPage() {
 
   const handleSubmitTask = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData);
+    //const formData = new FormData(e.currentTarget);
+    //const data = Object.fromEntries(formData);
     //setCurrentTask({
     //  empresa: String(data.empresa),
     //  tipoDeTarea: String(data.tipoDeTarea),
@@ -59,16 +55,7 @@ export function AppPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-white p-8 w-full max-w-md">
         {!sessionStartAt ? (
-          <>
-            <Button
-              onClick={handleStartSession}
-              variant="default"
-              className="w-full px-8 flex items-center rounded-lg py-6 justify-center text-xl font-semibold uppercase"
-            >
-              Iniciar temporizador
-              <PlayIcon className="size-6" />
-            </Button>
-          </>
+          "x"
         ) : (
           <div className="space-y-6">
             <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg">

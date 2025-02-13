@@ -7,7 +7,9 @@ import { signIn } from './server/sign-in.js'
 import { saveToken } from './lib/jwt.js'
 import { createTask } from './server/tasks/create-task.js'
 import { me } from './server/me.js'
-import { ipcMainHandle, ipcMainOn, ipcWebContentsSend } from './lib/ipcMainHandlers.js'
+import { ipcMainHandle, ipcMainOn, ipcWebContentsSend } from './lib/ipc-main-handlers.js'
+import { startSession } from './server/sessions/start-session.js'
+import { endSession } from './server/sessions/end-session.js'
 
 app.on("ready", function() {
 	const mainWindow = new BrowserWindow({
@@ -22,10 +24,6 @@ app.on("ready", function() {
 		mainWindow.loadFile(path.join(app.getAppPath(), '/dist-react/index.html'))
 	}
 
-	ipcMainHandle('checkToken', () => {
-		return me()
-	})
-
 	// handle submit form
 	ipcMainOn("signInSubmit", async (data: SignInFormData) => {
 		const result = await signIn(data);
@@ -35,6 +33,19 @@ app.on("ready", function() {
 		ipcWebContentsSend("signInResult", mainWindow.webContents, result)
 	})
 
+	ipcMainHandle('checkToken', () => me())
+
+	ipcMainOn("startSession", async () => {
+		const result = await startSession()
+		console.log({ result }, "start session server")
+		ipcWebContentsSend("startSessionResult", mainWindow.webContents, result)
+	})
+	ipcMainOn("endSession", async (session_id: number) => {
+		const result = await endSession(session_id)
+		ipcWebContentsSend("endSessionResult", mainWindow.webContents, result)
+	})
+
+	// TODO: complete
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
 		console.log({ result })

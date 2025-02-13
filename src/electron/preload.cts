@@ -2,7 +2,6 @@
 import electron from 'electron'
 
 electron.contextBridge.exposeInMainWorld('electron', {
-	checkToken: async () => await ipcInvoke('checkToken'),
 	signInSubmit: (data: SignInFormData) => {
 		ipcSend('signInSubmit', data);
 	},
@@ -11,6 +10,26 @@ electron.contextBridge.exposeInMainWorld('electron', {
 			callback(data)
 		})
 	},
+
+	checkToken: async () => await ipcInvoke('checkToken'),
+
+	startSession: () => {
+		ipcSend('startSession', undefined);
+	},
+	startSessionResult: (callback) => {
+		ipcOn('startSessionResult', (data) => {
+			callback(data)
+		})
+	},
+	endSession: (id: number) => {
+		ipcSend('endSession', id);
+	},
+	endSessionResult: (callback) => {
+		ipcOn('endSessionResult', (data) => {
+			callback(data)
+		})
+	},
+
 	createTaskSubmit: (data: CreateTaskFormData) => {
 		ipcSend('createTaskSubmit', data);
 	}

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/shared/button";
 import { Loader2 } from "lucide-react";
+import { LocalStorage } from "../storage";
 
 export function SignInPage() {
   const navigate = useNavigate();
@@ -20,19 +21,24 @@ export function SignInPage() {
   }
 
   React.useEffect(function checkToken() {
-    window.electron.checkToken().then((data) => {
-      if (data.success) {
-        navigate("/app");
-      }
-    })
+    const token = LocalStorage().getItem("token");
+    if (token) {
+      window.electron.checkToken().then((data) => {
+        if (data.success) {
+          LocalStorage().setItem("user", data.user);
+          navigate("/session");
+        }
+      })
+    }
   }, [navigate])
 
   React.useEffect(function signInResult() {
-    window.electron.signInResult((data: SignInResult) => {
+    window.electron.signInResult((data) => {
       setSubmitting(false);
       if (data.success) {
         setError("");
-        navigate("/app");
+        LocalStorage().setItem("token", data.token);
+        navigate("/session");
       } else {
         setError(data.error);
       }
