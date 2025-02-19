@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { LocalStorage } from "../storage";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { displayMessage } from "../lib/utils";
 
 export function JourneyPage() {
   const navigate = useNavigate()
@@ -24,7 +25,7 @@ export function JourneyPage() {
         LocalStorage().setItem("journey", data.journey)
         navigate("/tasks")
       } else {
-        // TODO handle error
+        displayMessage(data.error, "error")
       }
     })
   }, [navigate])

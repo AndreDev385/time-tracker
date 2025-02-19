@@ -28,7 +28,7 @@ export function TasksPage() {
       if (result.success) {
         setTask(result.task)
       } else {
-        displayMessage("No se pudo crear la tarea", "error")
+        displayMessage(result.error, "error")
       }
     })
   }, [])
@@ -43,6 +43,11 @@ export function TasksPage() {
 
     async function loadCreateTaskInfo() {
       const data = await window.electron.getCreateTaskInfo()
+      console.log({ createTaskInfo: data })
+      if (!data.success) {
+        displayMessage(data.error, "error")
+        return;
+      }
       setCreateTaskInfo(data)
     }
     loadCreateTaskInfo()
@@ -60,7 +65,7 @@ export function TasksPage() {
       if (data.success) {
         navigate("/journey")
       } else {
-        displayMessage("No se pudo finalizar el temporizador", "error")
+        displayMessage(data.error, "error")
       }
     })
   }, [navigate])
@@ -83,7 +88,7 @@ export function TasksPage() {
         setTask(null)
         displayMessage("La tarea se ha pausado", "success")
       } else {
-        displayMessage("No se pudo pausar la tarea", "error")
+        displayMessage(data.error, "error")
       }
     })
   }, [])
@@ -117,10 +122,10 @@ export function TasksPage() {
       <StepsTaskForm
         handleSubmitTask={handleSubmitTask}
         user={user!}
-        projects={createTaskInfo!.projects}
-        businesses={createTaskInfo!.business}
-        taskTypes={createTaskInfo!.taskTypes}
-        recordTypes={createTaskInfo!.recordTypes}
+        projects={createTaskInfo?.projects ?? []}
+        businesses={createTaskInfo?.business ?? []}
+        taskTypes={createTaskInfo?.taskTypes ?? []}
+        recordTypes={createTaskInfo?.recordTypes ?? []}
       />
     )
   }

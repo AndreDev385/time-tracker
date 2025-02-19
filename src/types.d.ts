@@ -1,3 +1,6 @@
+type SuccessResponse = { success: true }
+type ErrorResponse = { success: false, error: string }
+
 type UnsubscribeFunction = () => void
 
 // SignIn
@@ -47,7 +50,7 @@ type CreateTaskInfo = {
 
 type Interval = {
   startAt: Date
-  endAt: Date
+  endAt: Date | null
 }
 
 type Task = {
@@ -68,20 +71,25 @@ interface Window {
     signInSubmit: (data: SignInFormData) => void
     signInResult: (callback: (data: SignInResult) => void) => void
 
-    checkToken: () => Promise<{ success: boolean, user: JWTTokenData }>
-
+    checkToken: () => Promise<({ user: JWTTokenData } & SuccessResponse) | ErrorResponse>
     startJourney: () => void
-    startJourneyResult: (callback: (data: { success: boolean, journey: Omit<Journey, "endAt"> }) => void) => void
+    startJourneyResult: (callback: (data: { journey: Journey } & SuccessResponse | ErrorResponse) => void) => void
     endJourney: (id: number) => void
-    endJourneyResult: (callback: (data: { success: boolean, journey: Journey }) => void) => void
+    endJourneyResult: (
+      callback: (data: { journey: Journey } & SuccessResponse | ErrorResponse) => void
+    ) => void
 
-    getCreateTaskInfo: () => Promse<CreateTaskInfo>
+    getCreateTaskInfo: () => Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
     createTaskSubmit: (data: CreateTaskFormData) => void
-    createTaskResult: (callback: (data: { success: boolean, task: Task }) => void) => void
+    createTaskResult: (
+      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    ) => void
 
     pauseTask: ({ taskId }: { taskId: Task['id'] }) => void
-    pauseTaskResult: (callback: (data: { success: boolean, task: Task }) => void) => void
+    pauseTaskResult: (
+      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    ) => void
   }
 }
 
@@ -89,18 +97,18 @@ type EventPayloadMapping = {
   signInSubmit: SignInFormData
   signInResult: SignInResult
 
-  checkToken: Promise<{ success: boolean, user: JWTTokenData }>
+  checkToken: Promise<({ user: JWTTokenData } & SuccessResponse) | ErrorResponse>
 
   startJourney: void
-  startJourneyResult: { success: boolean, journey: Omit<Journey, "endAt"> }
+  startJourneyResult: { journey: Journey } & SuccessResponse | ErrorResponse
   endJourney: number
-  endJourneyResult: { success: boolean, journey: Journey }
+  endJourneyResult: { journey: Journey } & SuccessResponse | ErrorResponse
 
-  getCreateTaskInfo: Promise<CreateTaskInfo>
+  getCreateTaskInfo: Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
   createTaskSubmit: CreateTaskFormData
-  createTaskResult: { success: boolean, task: Task }
+  createTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 
   pauseTask: { taskId: Task['id'] }
-  pauseTaskResult: { success: boolean, task: Task }
+  pauseTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 }

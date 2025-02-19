@@ -49,11 +49,6 @@ app.on("ready", function() {
 
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
-		// map interval properties to date obj
-		result.task.intervals = result.task.intervals.map((i: { startAt: string, endAt: string }) => ({
-			startAt: new Date(i.startAt),
-			endAt: i.endAt ? new Date(i.endAt) : null
-		}))
 		console.log("main createTaskSubmit", { result })
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 	})
