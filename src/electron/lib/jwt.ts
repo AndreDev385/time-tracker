@@ -4,11 +4,7 @@ import { app } from 'electron'
 export function saveToken(token: string) {
 	const path = app.getPath('userData')
 	const data = JSON.stringify({ token })
-	fs.writeFile(`${path}/token.json`, data, (err) => {
-		if (err) {
-			return new Error('Error saving token')
-		}
-	})
+	fs.writeFileSync(`${path}/token.json`, data)
 }
 
 export function readToken(): { token: string } | null {

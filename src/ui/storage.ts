@@ -1,7 +1,7 @@
 type Storage = {
   token: string | null
   user: JWTTokenData | null
-  session: { start_at: Date, id: number } | null
+  journey: { startAt: Journey['startAt'], id: Journey['id'] } | null
 }
 
 function getItem<Key extends keyof Storage>(key: Key): Storage[Key] {

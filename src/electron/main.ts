@@ -6,10 +6,12 @@ import { createTray } from './tray.js'
 import { signIn } from './server/sign-in.js'
 import { saveToken } from './lib/jwt.js'
 import { createTask } from './server/tasks/create-task.js'
+import { pauseTask } from './server/tasks/pause-task.js'
 import { me } from './server/me.js'
 import { ipcMainHandle, ipcMainOn, ipcWebContentsSend } from './lib/ipc-main-handlers.js'
-import { startSession } from './server/sessions/start-session.js'
-import { endSession } from './server/sessions/end-session.js'
+import { getCreateTaskInfo } from './server/tasks/get-create-task-info.js'
+import { startJourney } from './server/journeys/start-journey.js'
+import { endJourney } from './server/journeys/end-journey.js'
 
 app.on("ready", function() {
 	const mainWindow = new BrowserWindow({
@@ -34,21 +36,33 @@ app.on("ready", function() {
 	})
 
 	ipcMainHandle('checkToken', () => me())
+	ipcMainHandle('getCreateTaskInfo', () => getCreateTaskInfo())
 
-	ipcMainOn("startSession", async () => {
-		const result = await startSession()
-		console.log({ result }, "start session server")
-		ipcWebContentsSend("startSessionResult", mainWindow.webContents, result)
+	ipcMainOn("startJourney", async () => {
+		const result = await startJourney()
+		ipcWebContentsSend("startJourneyResult", mainWindow.webContents, result)
 	})
-	ipcMainOn("endSession", async (session_id: number) => {
-		const result = await endSession(session_id)
-		ipcWebContentsSend("endSessionResult", mainWindow.webContents, result)
+	ipcMainOn("endJourney", async (journeyId: number) => {
+		const result = await endJourney(journeyId)
+		ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
 	})
 
-	// TODO: complete
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
-		console.log({ result })
+		// map interval properties to date obj
+		result.task.intervals = result.task.intervals.map((i: { startAt: string, endAt: string }) => ({
+			startAt: new Date(i.startAt),
+			endAt: i.endAt ? new Date(i.endAt) : null
+		}))
+		console.log("main createTaskSubmit", { result })
+		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
+	})
+
+	ipcMainOn("pauseTask", async (data: { taskId: Task['id'] }) => {
+		console.log({ data })
+		const result = await pauseTask(data.taskId)
+		console.log("main pausee", { result })
+		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 	})
 
 	createTray(mainWindow)

@@ -3,10 +3,10 @@ import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
 
-export async function startSession() {
+export async function startJourney() {
 	const token = readToken()?.token
 
-	const response = await net.fetch(`${API_URL}/sessions`, {
+	const response = await net.fetch(`${API_URL}/journeys`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

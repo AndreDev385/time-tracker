@@ -25,8 +25,9 @@ export function SignInPage() {
     if (token) {
       window.electron.checkToken().then((data) => {
         if (data.success) {
+          console.log("setting user")
           LocalStorage().setItem("user", data.user);
-          navigate("/session");
+          navigate("/journey");
         }
       })
     }
@@ -38,7 +39,15 @@ export function SignInPage() {
       if (data.success) {
         setError("");
         LocalStorage().setItem("token", data.token);
-        navigate("/session");
+        window.electron.checkToken().then((data) => {
+          if (data.success) {
+            console.log("setting user")
+            LocalStorage().setItem("user", data.user);
+            navigate("/journey");
+          } else {
+            setError("Error al iniciar sesión")
+          }
+        })
       } else {
         setError(data.error);
       }

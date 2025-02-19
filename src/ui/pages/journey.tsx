@@ -5,23 +5,23 @@ import { useNavigate } from "react-router";
 import { LocalStorage } from "../storage";
 import { PlayIcon } from "@heroicons/react/24/solid";
 
-export function SessionPage() {
+export function JourneyPage() {
   const navigate = useNavigate()
   const [submitting, setSubmitting] = React.useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true)
-    window.electron.startSession()
+    window.electron.startJourney()
   }
 
   React.useEffect(function waitResponse() {
-    window.electron.startSessionResult((data) => {
+    window.electron.startJourneyResult((data) => {
       setSubmitting(false)
       if (data.success) {
         // save in storage
         console.log({ data })
-        LocalStorage().setItem("session", data.session)
+        LocalStorage().setItem("journey", data.journey)
         navigate("/tasks")
       } else {
         // TODO handle error
@@ -35,7 +35,7 @@ export function SessionPage() {
         <Button
           type="submit"
           name="intent"
-          value="start-session"
+          value="start-journey"
           variant="default"
           className="w-full px-8 flex items-center rounded-lg py-6 justify-center text-xl font-semibold uppercase"
         >
@@ -47,7 +47,7 @@ export function SessionPage() {
               </>
             ) : (
               <>
-                Iniciar temporizador
+                Empezar jornada
                 <PlayIcon className="size-6" />
               </>
             )

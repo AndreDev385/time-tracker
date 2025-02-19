@@ -4,18 +4,9 @@ import React from "react";
 import { Input } from "./shared/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./shared/select";
 
-export function CreateTaskForm({ handleSubmitTask }: Props) {
+export function CreateTaskForm({ handleSubmitTask, projects, businesses, taskTypes }: Props) {
 
-  const [formData, setFormData] = React.useState({
-    proyecto: "",
-    empresa: "",
-    tipoDeTarea: "",
-    expediente: "",
-  })
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+  const [selectedTaskType, setSelectedTaskType] = React.useState<TaskType>()
 
   return (
     <form onSubmit={handleSubmitTask} className="space-y-6">
@@ -24,37 +15,55 @@ export function CreateTaskForm({ handleSubmitTask }: Props) {
           <SelectValue placeholder="Proyecto" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="dev">Empresa</SelectItem>
+          {projects.map(p => (
+            <SelectItem key={p.id} value={`${p.id}`}>{p.name}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
-      <Select name="project">
+      <Select name="business">
         <SelectTrigger>
           <SelectValue placeholder="Empresa" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="dev">Otizar C. A.</SelectItem>
-          <SelectItem value="dev">COPCA</SelectItem>
+          {businesses.map(b => (
+            <SelectItem key={b.id} value={`${b.id}`}>{b.name}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
-      <Select name="task_type">
+      <Select name="task_type"
+        onValueChange={(value) => setSelectedTaskType(taskTypes.find(t => t.id === Number(value)))}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Tipo de tarea" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="dev">Desarrollo</SelectItem>
-          <SelectItem value="des">Diseño</SelectItem>
+          {taskTypes.map(t => (
+            <SelectItem key={t.id} value={`${t.id}`}>{t.name}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
+      {selectedTaskType && selectedTaskType?.steps.length > 0 ? (
+        <Select name="step">
+          <SelectTrigger>
+            <SelectValue placeholder="Paso" />
+          </SelectTrigger>
+          <SelectContent>
+            {selectedTaskType.steps.map(s => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
       <Input
         type="text"
-        name="expediente"
+        name="record_id"
         placeholder="Expediente"
-        value={formData.expediente}
-        onChange={handleInputChange}
         required
       />
       <Button
         type="submit"
+        name="intent"
+        value="create-task"
         className="rounded-lg w-full flex items-center justify-center text-lg"
       >
         <Plus strokeWidth={2} />
@@ -64,5 +73,8 @@ export function CreateTaskForm({ handleSubmitTask }: Props) {
 }
 
 type Props = {
+  projects: Project[]
+  businesses: Business[]
+  taskTypes: TaskType[]
   handleSubmitTask: (e: React.FormEvent<HTMLFormElement>) => void
 }

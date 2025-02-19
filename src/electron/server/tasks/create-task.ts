@@ -15,6 +15,6 @@ export async function createTask(data: CreateTaskFormData) {
 
 	const json = await response.json()
 	console.log({ json, ok: response.ok, status: response.status })
-	return { success: response.ok, ...json }
+	return { success: response.ok, task: json.data }
 }
 

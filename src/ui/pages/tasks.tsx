@@ -1,101 +1,138 @@
 import React from "react"
-import { } from 'date-fns'
-import { StopIcon } from "@heroicons/react/24/solid"
 import invariant from 'tiny-invariant'
 
 import { LocalStorage } from "../storage"
 import { useNavigate } from "react-router"
-import { displayMessage, formatDistanceHHMMSS } from "../lib/utils"
-import { Button } from "../components/shared/button"
+import { displayMessage } from "../lib/utils"
 import { Separator } from "../components/shared/separator"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../components/shared/dialog"
-import { DialogClose } from "@radix-ui/react-dialog"
+import { JourneyTimer } from "../components/journey-timer"
+import { StepsTaskForm } from "../components/steps-task-form"
+import { Loader2 } from "lucide-react"
+import { Button } from "../components/shared/button"
+import { PauseIcon } from "@heroicons/react/24/solid"
 
 export function TasksPage() {
   const navigate = useNavigate()
 
-  const [session, setSession] = React.useState<{ id: number, start_at: Date }>()
-  const [currentTime, setCurrentTime] = React.useState(new Date())
+  const [loading, setLoading] = React.useState(false)
+  const [journey, setJourney] = React.useState<{ id: Journey['id'], startAt: Journey['startAt'] }>()
+  const [createTaskInfo, setCreateTaskInfo] = React.useState<CreateTaskInfo>()
+  const [user, setUser] = React.useState<JWTTokenData>()
 
-  React.useEffect(function loadSession() {
-    const session = LocalStorage().getItem("session")
-    console.log({ session })
-    if (!session) {
-      navigate("/session")
+  const [task, setTask] = React.useState<Task | null>(null)
+
+  React.useEffect(function createTaskResult() {
+    window.electron.createTaskResult((result) => {
+      setLoading(false)
+      console.log({ data: result }, "RESULT")
+      if (result.success) {
+        setTask(result.task)
+      } else {
+        displayMessage("No se pudo crear la tarea", "error")
+      }
+    })
+  }, [])
+
+  React.useEffect(function loadJourney() {
+    const journey = LocalStorage().getItem("journey")
+    if (!journey) {
+      navigate("/journey")
       return
     }
-    setSession({ id: session.id, start_at: new Date(session.start_at) })
+    setJourney({ id: journey.id, startAt: new Date(journey.startAt) })
+
+    async function loadCreateTaskInfo() {
+      const data = await window.electron.getCreateTaskInfo()
+      setCreateTaskInfo(data)
+    }
+    loadCreateTaskInfo()
+    setUser(LocalStorage().getItem("user") as JWTTokenData)
   }, [navigate])
 
-  React.useEffect(function timer() {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
 
-    return () => clearInterval(interval)
-  }, []);
-
-  function handleStopSession() {
-    invariant(session, "session is not defined")
-    window.electron.endSession(session.id)
+  function handleStopJourney() {
+    invariant(journey, "journey is not defined")
+    window.electron.endJourney(journey.id)
   }
 
-  React.useEffect(function stepSessionResponse() {
-    window.electron.endSessionResult((data) => {
+  React.useEffect(function stopJourneyResponse() {
+    window.electron.endJourneyResult((data) => {
       if (data.success) {
-        navigate("/session")
+        navigate("/journey")
       } else {
         displayMessage("No se pudo finalizar el temporizador", "error")
       }
     })
   }, [navigate])
 
-  if (!session) return
+  function handleSubmitTask(createTaskFormData: CreateTaskFormData) {
+    window.electron.createTaskSubmit(createTaskFormData)
+    setLoading(true)
+  }
+
+  function handlePauseTask(taskId: Task['id']) {
+    window.electron.pauseTask({ taskId })
+    setLoading(true)
+  }
+
+  React.useEffect(function pauseTaskResponse() {
+    window.electron.pauseTaskResult((data) => {
+      console.log("Pause response", { data })
+      setLoading(false)
+      if (data.success) {
+        setTask(null)
+        displayMessage("La tarea se ha pausado", "success")
+      } else {
+        displayMessage("No se pudo pausar la tarea", "error")
+      }
+    })
+  }, [])
+
+  function render() {
+    if (loading) {
+      return (<div className="flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin size-10" />
+      </div>)
+    }
+
+    if (task) {
+      return (
+        <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg items-center">
+          <div>
+            <h1>Trabajando en - Expediente: {task.recordId}</h1>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="rounded-lg"
+            onMouseDown={() => handlePauseTask(task.id)}
+          >
+            <PauseIcon className="size-6" />
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <StepsTaskForm
+        handleSubmitTask={handleSubmitTask}
+        user={user!}
+        projects={createTaskInfo!.projects}
+        businesses={createTaskInfo!.business}
+        taskTypes={createTaskInfo!.taskTypes}
+        recordTypes={createTaskInfo!.recordTypes}
+      />
+    )
+  }
+
+  // TODO: handle error
+  if (!journey || !createTaskInfo || !user) return
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <div className="space-y-6 max-w-md w-full">
-        <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold">{formatDistanceHHMMSS(session?.start_at, currentTime)}</h2>
-          <Dialog>
-            <DialogTrigger>
-              <Button
-                variant="destructive"
-                className="rounded-lg p-4"
-              >
-                <StopIcon className="size-6" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>¿Estás seguro de finalizar el temporizador?</DialogTitle>
-                <DialogDescription>
-                  <p>
-                    Asegúrate de completar todas tus tareas antes de finalizar el temporizador.
-                  </p>
-                  <p>
-                    Esta acción no se puede deshacer.
-                  </p>
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">
-                    Cancelar
-                  </Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleStopSession()}
-                  >
-                    Finalizar
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
         <Separator />
+        {render()}
       </div>
     </div>
   )

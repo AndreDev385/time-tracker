@@ -13,26 +13,42 @@ electron.contextBridge.exposeInMainWorld('electron', {
 
 	checkToken: async () => await ipcInvoke('checkToken'),
 
-	startSession: () => {
-		ipcSend('startSession', undefined);
+	startJourney: () => {
+		ipcSend('startJourney', undefined);
 	},
-	startSessionResult: (callback) => {
-		ipcOn('startSessionResult', (data) => {
+	startJourneyResult: (callback) => {
+		ipcOn('startJourneyResult', (data) => {
 			callback(data)
 		})
 	},
-	endSession: (id: number) => {
-		ipcSend('endSession', id);
+	endJourney: (id: number) => {
+		ipcSend('endJourney', id);
 	},
-	endSessionResult: (callback) => {
-		ipcOn('endSessionResult', (data) => {
+	endJourneyResult: (callback) => {
+		ipcOn('endJourneyResult', (data) => {
 			callback(data)
 		})
 	},
 
+	getCreateTaskInfo: async () => await ipcInvoke("getCreateTaskInfo"),
+
 	createTaskSubmit: (data: CreateTaskFormData) => {
 		ipcSend('createTaskSubmit', data);
-	}
+	},
+	createTaskResult: (callback) => {
+		ipcOn('createTaskResult', (data) => {
+			callback(data)
+		})
+	},
+
+	pauseTask(data) {
+		ipcSend('pauseTask', data);
+	},
+	pauseTaskResult: (callback) => {
+		ipcOn('pauseTaskResult', (data) => {
+			callback(data)
+		})
+	},
 } satisfies Window['electron'])
 
 // ----------------------------
