@@ -1,9 +1,16 @@
 import React from "react"
 import { Button } from "./shared/button";
 import { Input } from "./shared/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../components/shared/dialog"
+import { FormState } from "../pages/tasks";
 
 export function StepsTaskForm({
+  formState,
+  onFormStateChange,
+  ONE_ASSIGNED_PROJECT,
   handleSubmitTask,
+  collisionModal,
+  setCollisionModal,
   user,
   projects,
   businesses,
@@ -12,29 +19,19 @@ export function StepsTaskForm({
 }: Props) {
 
 
-  const ONE_ASSIGNED_PROJECT = user.assignedProjects ? user.assignedProjects.length === 1 : false;
-
-  const [recordId, setRecordId] = React.useState<string>("")
-  const [selectedProject, setSelectedProject] = React.useState<Project['id'] | null>(ONE_ASSIGNED_PROJECT ? user.assignedProjects![0] : null)
-  const [selectedBusiness, setSelectedBusiness] = React.useState<Business['id']>()
-  const [selectedTaskType, setSelectedTaskType] = React.useState<TaskType['id']>()
-  const [selectedRecordType, setSelectedRecordType] = React.useState<RecordType['id']>()
-
-  const [step, setStep] = React.useState<number>(ONE_ASSIGNED_PROJECT ? 1 : 0)
-
   const steps = [
     {
-      options: projects.filter(p => p.id !== selectedProject),
+      options: projects.filter(p => p.id !== formState.selectedProject),
       setSelected: (id: number) => {
-        setSelectedProject(id)
-        setStep(1)
+        onFormStateChange("selectedProject", id)
+        onFormStateChange("step", 1)
       }
     },
     {
       options: taskTypes,
       setSelected: (id: number) => {
-        setSelectedTaskType(id)
-        setStep(2)
+        onFormStateChange("selectedTaskType", id)
+        onFormStateChange("step", 2)
       }
     },
     {
@@ -44,15 +41,15 @@ export function StepsTaskForm({
     {
       options: businesses,
       setSelected: (id: number) => {
-        setSelectedBusiness(id)
-        setStep(4)
+        onFormStateChange("selectedBusiness", id)
+        onFormStateChange("step", 4)
       }
     },
     {
       options: recordTypes,
       setSelected: (id: number) => {
-        setSelectedRecordType(id)
-        setStep(5)
+        onFormStateChange("selectedRecordType", id)
+        onFormStateChange("step", 5)
       }
     },
   ]
@@ -71,8 +68,9 @@ export function StepsTaskForm({
       return (
         <div>
           <Input
-            value={recordId}
-            onChange={(e) => setRecordId(e.target.value)}
+            value={formState.recordId}
+            onChange={(e) => onFormStateChange("recordId", e.target.value)}
+            name="recordId"
             placeholder="Expediente"
           />
         </div>
@@ -85,77 +83,120 @@ export function StepsTaskForm({
   }
 
   // TODO: validate record id
-  const INSERT_RECORD_ID_STEP = step === 2 && recordId.trim() !== "";
-  const SELECTING_PROPERTIES = (step === steps.length - 1 || !selectedProject || !selectedTaskType || !selectedBusiness || !selectedRecordType)
+  const INPUT_STEP = 2
+  const INSERT_RECORD_ID_STEP = formState.step === INPUT_STEP && formState.recordId.trim() !== "";
+  const SELECTING_PROPERTIES = formState.step < steps.length
   const DISABLE_BUTTON = INSERT_RECORD_ID_STEP ? false : SELECTING_PROPERTIES
 
   return (
-    <div className="flex flex-col gap-2 border border-gray-300 rounded-lg p-4">
-      <h1 className="text-muted-foreground text-lg">Nueva tarea - {messages[step]}</h1>
-      {/* PROJECT step 0 */}
-      {
-        step < steps.length ? (
-          <>
-            {renderStep(step)}
-          </>
-        )
-          : (
-            <div>
-              <div className="flex justify-between">
-                <p><strong>Proyecto:</strong></p>
-                <p>{projects.find(p => p.id === selectedProject)?.name}</p>
-              </div>
-              <div className="flex justify-between">
-                <p><strong>Tipo de tarea:</strong></p>
-                <p>{taskTypes.find(p => p.id === selectedTaskType)?.name}</p>
-              </div>
-              <div className="flex justify-between">
-                <p><strong>Empresa:</strong></p>
-                <p>{businesses.find(p => p.id === selectedBusiness)?.name}</p>
-              </div>
-              <div className="flex justify-between">
-                <p><strong>Tipo expediente:</strong></p>
-                <p>{recordTypes.find(p => p.id === selectedRecordType)?.name}</p>
-              </div>
-            </div>
+    <>
+      <Dialog open={collisionModal.open} onOpenChange={(open) => setCollisionModal({ open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Este expediente ya existe</DialogTitle>
+            <DialogDescription>
+              Si continuas el tiempo dedicado a este expediente por el usuario anterior sera marcado como no productivo.
+              Estas seguro que quieres continuar?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onMouseDown={() => setCollisionModal({ open: false })}
+              variant="destructive"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onMouseDown={() => {
+                setCollisionModal({ open: false })
+                handleSubmitTask({
+                  userId: user.id,
+                  projectId: Number(formState.selectedProject),
+                  taskTypeId: Number(formState.selectedTaskType),
+                  businessId: Number(formState.selectedBusiness),
+                  recordTypeId: Number(formState.selectedRecordType),
+                  recordId: formState.recordId,
+                }, true)
+              }}
+              variant="default"
+            >
+              Continuar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <div className="flex flex-col gap-2 border border-gray-300 rounded-lg p-4">
+        <h1 className="text-muted-foreground text-lg">Nueva tarea - {messages[formState.step]}</h1>
+        {/* PROJECT step 0 */}
+        {
+          formState.step < steps.length ? (
+            <>
+              {renderStep(formState.step)}
+            </>
           )
-      }
-      <div className="flex gap-4 justify-end">
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => setStep(step - 1)}
-          disabled={ONE_ASSIGNED_PROJECT ? step === 1 : step === 0}
-        >
-          Atrás
-        </Button>
-        <Button
-          size="sm"
-          disabled={DISABLE_BUTTON}
-          onMouseDown={() => {
-            if (step === 2) {
-              setStep(3)
-            } else {
-              return handleSubmitTask({
-                userId: user.id,
-                projectId: Number(selectedProject),
-                taskTypeId: Number(selectedTaskType),
-                businessId: Number(selectedBusiness),
-                recordTypeId: Number(selectedRecordType),
-                recordId,
-              })
-            }
-          }}
-        >
-          Aceptar
-        </Button>
+            : (
+              <div>
+                <div className="flex justify-between">
+                  <p><strong>Proyecto:</strong></p>
+                  <p>{projects.find(p => p.id === formState.selectedProject)?.name}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p><strong>Tipo de tarea:</strong></p>
+                  <p>{taskTypes.find(p => p.id === formState.selectedTaskType)?.name}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p><strong>Empresa:</strong></p>
+                  <p>{businesses.find(p => p.id === formState.selectedBusiness)?.name}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p><strong>Tipo expediente:</strong></p>
+                  <p>{recordTypes.find(p => p.id === formState.selectedRecordType)?.name}</p>
+                </div>
+              </div>
+            )
+        }
+        <div className="flex gap-4 justify-end">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onFormStateChange("step", formState.step - 1)}
+            disabled={ONE_ASSIGNED_PROJECT ? formState.step === 1 : formState.step === 0}
+          >
+            Atrás
+          </Button>
+          <Button
+            size="sm"
+            disabled={DISABLE_BUTTON}
+            onMouseDown={() => {
+              if (formState.step === 2) {
+                onFormStateChange("step", 3)
+              } else {
+                return handleSubmitTask({
+                  userId: user.id,
+                  projectId: Number(formState.selectedProject),
+                  taskTypeId: Number(formState.selectedTaskType),
+                  businessId: Number(formState.selectedBusiness),
+                  recordTypeId: Number(formState.selectedRecordType),
+                  recordId: formState.recordId,
+                })
+              }
+            }}
+          >
+            Aceptar
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
 type Props = {
-  handleSubmitTask: (createTaskFormData: CreateTaskFormData) => void
+  formState: FormState
+  onFormStateChange: (name: keyof FormState, value: FormState[keyof FormState]) => void
+  ONE_ASSIGNED_PROJECT: boolean
+  handleSubmitTask: (createTaskFormData: CreateTaskFormData, confirmation?: boolean) => void
+  collisionModal: { open: boolean }
+  setCollisionModal: React.Dispatch<React.SetStateAction<{ open: boolean }>>
   user: JWTTokenData
   projects: Project[]
   businesses: Business[]

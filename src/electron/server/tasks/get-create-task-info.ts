@@ -12,8 +12,6 @@ export async function getCreateTaskInfo(): Promise<CreateTaskInfo & SuccessRespo
 			getRecordTypes(),
 		])
 
-		console.log({ data })
-
 		if (!data[0].success || !data[1].success || !data[2].success || !data[3].success) {
 			return { success: false, error: "Ha ocurrido un error" }
 		}

@@ -20,7 +20,7 @@ export function JourneyTimer({ journey, handleStopJourney, }: Props) {
       <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
       <Button
         variant="destructive"
-        size="sm"
+        size="icon"
         className="rounded-lg"
         onMouseDown={() => handleStopJourney()}
       >

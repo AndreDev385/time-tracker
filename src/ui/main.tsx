@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 
 import './index.css'
 import { SignInPage } from './pages/sign-in'
-import { JourneyPage } from './pages/journey'
+import { JourneyLayout } from './pages/journey'
 import { TasksPage } from './pages/tasks'
 import { Toaster } from './components/shared/sonner'
 
@@ -13,8 +13,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<SignInPage />} />
-        <Route path="/journey" element={<JourneyPage />} />
-        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/journey" element={<JourneyLayout />}>
+          <Route index element={<TasksPage />} />
+        </Route>
       </Routes>
       <Toaster />
     </BrowserRouter>

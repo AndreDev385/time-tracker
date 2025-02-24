@@ -25,7 +25,6 @@ export function SignInPage() {
     if (token) {
       window.electron.checkToken().then((data) => {
         if (data.success) {
-          console.log("setting user")
           LocalStorage().setItem("user", data.user);
           navigate("/journey");
         }
@@ -41,7 +40,6 @@ export function SignInPage() {
         LocalStorage().setItem("token", data.token);
         window.electron.checkToken().then((data) => {
           if (data.success) {
-            console.log("setting user")
             LocalStorage().setItem("user", data.user);
             navigate("/journey");
           } else {

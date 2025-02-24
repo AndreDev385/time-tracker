@@ -1,49 +1,52 @@
 import React from "react"
-import invariant from 'tiny-invariant'
-
-import { LocalStorage } from "../storage"
-import { useNavigate } from "react-router"
 import { displayMessage } from "../lib/utils"
-import { Separator } from "../components/shared/separator"
-import { JourneyTimer } from "../components/journey-timer"
 import { StepsTaskForm } from "../components/steps-task-form"
-import { Loader2 } from "lucide-react"
+import { CheckCircleIcon, Loader2 } from "lucide-react"
 import { Button } from "../components/shared/button"
-import { PauseIcon } from "@heroicons/react/24/solid"
+import { PauseIcon, StopIcon } from "@heroicons/react/24/solid"
+import { LocalStorage } from "../storage"
 
 export function TasksPage() {
-  const navigate = useNavigate()
-
   const [loading, setLoading] = React.useState(false)
-  const [journey, setJourney] = React.useState<{ id: Journey['id'], startAt: Journey['startAt'] }>()
   const [createTaskInfo, setCreateTaskInfo] = React.useState<CreateTaskInfo>()
-  const [user, setUser] = React.useState<JWTTokenData>()
 
+  const [collisionModal, setCollisionModal] = React.useState({
+    open: false,
+  })
+
+  const [user, setUser] = React.useState<JWTTokenData>();
   const [task, setTask] = React.useState<Task | null>(null)
 
-  React.useEffect(function createTaskResult() {
-    window.electron.createTaskResult((result) => {
-      setLoading(false)
-      console.log({ data: result }, "RESULT")
-      if (result.success) {
-        setTask(result.task)
-      } else {
-        displayMessage(result.error, "error")
-      }
-    })
-  }, [])
+  /* Form */
+  const ONE_ASSIGNED_PROJECT = React.useMemo(() => {
+    return user?.assignedProjects ? user.assignedProjects.length === 1 : false;
+  }, [user])
 
-  React.useEffect(function loadJourney() {
-    const journey = LocalStorage().getItem("journey")
-    if (!journey) {
-      navigate("/journey")
-      return
-    }
-    setJourney({ id: journey.id, startAt: new Date(journey.startAt) })
+  const INITIAL_FORM_STATE: FormState = React.useMemo(() => ({
+    step: ONE_ASSIGNED_PROJECT ? 1 : 0,
+    recordId: "",
+    selectedProject: null,
+    selectedBusiness: null,
+    selectedTaskType: null,
+    selectedRecordType: null,
+  }), [ONE_ASSIGNED_PROJECT])
 
+  const [formState, setFormState] = React.useState(INITIAL_FORM_STATE)
+
+  function onFormStateChange(name: keyof typeof INITIAL_FORM_STATE, value: FormState[keyof FormState]) {
+    setFormState(prev => ({ ...prev, [name]: value }))
+  }
+  /**/
+  React.useEffect(function loadUser() {
+    setFormState(prev => ({
+      ...prev, selectedProject: ONE_ASSIGNED_PROJECT ? (user as JWTTokenData).assignedProjects![0] : null,
+      step: ONE_ASSIGNED_PROJECT ? 1 : 0
+    }))
+  }, [user, ONE_ASSIGNED_PROJECT])
+
+  React.useEffect(function loadCreateTaskInfo() {
     async function loadCreateTaskInfo() {
       const data = await window.electron.getCreateTaskInfo()
-      console.log({ createTaskInfo: data })
       if (!data.success) {
         displayMessage(data.error, "error")
         return;
@@ -52,28 +55,37 @@ export function TasksPage() {
     }
     loadCreateTaskInfo()
     setUser(LocalStorage().getItem("user") as JWTTokenData)
-  }, [navigate])
+  }, [])
 
-
-  function handleStopJourney() {
-    invariant(journey, "journey is not defined")
-    window.electron.endJourney(journey.id)
-  }
-
-  React.useEffect(function stopJourneyResponse() {
-    window.electron.endJourneyResult((data) => {
-      if (data.success) {
-        navigate("/journey")
-      } else {
-        displayMessage(data.error, "error")
-      }
-    })
-  }, [navigate])
-
-  function handleSubmitTask(createTaskFormData: CreateTaskFormData) {
-    window.electron.createTaskSubmit(createTaskFormData)
+  function handleSubmitTask(createTaskFormData: CreateTaskFormData, confirmation: boolean = false) {
+    if (confirmation) {
+      window.electron.createTaskSubmit(createTaskFormData)
+    } else {
+      window.electron.checkTaskCollision(createTaskFormData)
+    }
     setLoading(true)
   }
+
+  React.useEffect(function createTaskResult() {
+    window.electron.createTaskResult((result) => {
+      setLoading(false)
+      if (result.success) {
+        setTask(result.task)
+        setFormState({ ...INITIAL_FORM_STATE, selectedProject: formState.selectedProject })
+      } else {
+        displayMessage(result.error, "error")
+      }
+    })
+  }, [INITIAL_FORM_STATE])
+
+  React.useEffect(function checkTaskCollisionResponse() {
+    window.electron.checkTaskCollisionResult((data) => {
+      setLoading(false)
+      if (data.success) {
+        setCollisionModal({ open: true })
+      }
+    })
+  }, [])
 
   function handlePauseTask(taskId: Task['id']) {
     window.electron.pauseTask({ taskId })
@@ -82,7 +94,6 @@ export function TasksPage() {
 
   React.useEffect(function pauseTaskResponse() {
     window.electron.pauseTaskResult((data) => {
-      console.log("Pause response", { data })
       setLoading(false)
       if (data.success) {
         setTask(null)
@@ -93,52 +104,106 @@ export function TasksPage() {
     })
   }, [])
 
-  function render() {
-    if (loading) {
-      return (<div className="flex flex-col items-center justify-center">
-        <Loader2 className="animate-spin size-10" />
-      </div>)
-    }
+  function handleCompleteTask(taskId: Task['id']) {
+    window.electron.completeTask({ taskId })
+    setLoading(true)
+  }
 
-    if (task) {
-      return (
-        <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg items-center">
-          <div>
-            <h1>Trabajando en - Expediente: {task.recordId}</h1>
-          </div>
+  React.useEffect(function completeTaskResponse() {
+    window.electron.completeTaskResult((data) => {
+      setLoading(false)
+      if (data.success) {
+        setTask(null)
+        displayMessage("La tarea se ha completado", "success")
+      } else {
+        displayMessage(data.error, "error")
+      }
+    })
+  }, [])
+
+  function handleCancelTask(taskId: Task['id']) {
+    window.electron.cancelTask({ taskId })
+    setLoading(true)
+  }
+
+  React.useEffect(function cancelTaskResponse() {
+    window.electron.cancelTaskResult((data) => {
+      setLoading(false)
+      if (data.success) {
+        setTask(null)
+        displayMessage("La tarea se ha cancelado", "success")
+      } else {
+        displayMessage(data.error, "error")
+      }
+    })
+  }, [])
+
+  if (!createTaskInfo || !user) return "Ha ocurrido un error"
+
+  if (loading) {
+    return (<div className="flex flex-col items-center justify-center">
+      <Loader2 className="animate-spin size-10" />
+    </div>)
+  }
+
+  if (task) {
+    return (
+      <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg items-center">
+        <div>
+          <h1>Expediente: {task.recordId}</h1>
+        </div>
+        <div className="flex gap-2">
           <Button
-            variant="destructive"
-            size="sm"
-            className="rounded-lg"
+            variant="default"
+            size="icon"
+            className="rounded-lg bg-green-500 hover:bg-green-400/90"
+            onMouseDown={() => handleCompleteTask(task.id)}
+          >
+            <CheckCircleIcon className="size-6" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-lg border-gray-400"
             onMouseDown={() => handlePauseTask(task.id)}
           >
             <PauseIcon className="size-6" />
           </Button>
+          <Button
+            variant="destructive"
+            size="icon"
+            className="rounded-lg"
+            onMouseDown={() => handleCancelTask(task.id)}
+          >
+            <StopIcon className="size-6" />
+          </Button>
         </div>
-      )
-    }
-
-    return (
-      <StepsTaskForm
-        handleSubmitTask={handleSubmitTask}
-        user={user!}
-        projects={createTaskInfo?.projects ?? []}
-        businesses={createTaskInfo?.business ?? []}
-        taskTypes={createTaskInfo?.taskTypes ?? []}
-        recordTypes={createTaskInfo?.recordTypes ?? []}
-      />
+      </div>
     )
   }
 
-  // TODO: handle error
-  if (!journey || !createTaskInfo || !user) return
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="space-y-6 max-w-md w-full">
-        <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
-        <Separator />
-        {render()}
-      </div>
-    </div>
+    <StepsTaskForm
+      formState={formState}
+      onFormStateChange={onFormStateChange}
+      ONE_ASSIGNED_PROJECT={ONE_ASSIGNED_PROJECT}
+      handleSubmitTask={handleSubmitTask}
+      collisionModal={collisionModal}
+      setCollisionModal={setCollisionModal}
+      user={user!}
+      projects={createTaskInfo?.projects ?? []}
+      businesses={createTaskInfo?.business ?? []}
+      taskTypes={createTaskInfo?.taskTypes ?? []}
+      recordTypes={createTaskInfo?.recordTypes ?? []}
+    />
   )
+}
+
+export type FormState = {
+  step: number
+  recordId: string
+  selectedProject: Project['id'] | null
+  selectedBusiness: Business['id'] | null
+  selectedTaskType: TaskType['id'] | null
+  selectedRecordType: RecordType['id'] | null
 }

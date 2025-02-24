@@ -32,6 +32,15 @@ electron.contextBridge.exposeInMainWorld('electron', {
 
 	getCreateTaskInfo: async () => await ipcInvoke("getCreateTaskInfo"),
 
+	checkTaskCollision: (data: CreateTaskFormData) => {
+		ipcSend("checkTaskCollision", data)
+	},
+	checkTaskCollisionResult: (callback) => {
+		ipcOn('checkTaskCollisionResult', (data) => {
+			callback(data)
+		})
+	},
+
 	createTaskSubmit: (data: CreateTaskFormData) => {
 		ipcSend('createTaskSubmit', data);
 	},
@@ -46,6 +55,24 @@ electron.contextBridge.exposeInMainWorld('electron', {
 	},
 	pauseTaskResult: (callback) => {
 		ipcOn('pauseTaskResult', (data) => {
+			callback(data)
+		})
+	},
+
+	completeTask(data) {
+		ipcSend('completeTask', data);
+	},
+	completeTaskResult: (callback) => {
+		ipcOn('completeTaskResult', (data) => {
+			callback(data)
+		})
+	},
+
+	cancelTask(data) {
+		ipcSend('cancelTask', data);
+	},
+	cancelTaskResult: (callback) => {
+		ipcOn('cancelTaskResult', (data) => {
 			callback(data)
 		})
 	},

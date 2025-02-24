@@ -81,6 +81,11 @@ interface Window {
 
     getCreateTaskInfo: () => Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
+    checkTaskCollision: (data: CreateTaskFormData) => void;
+    checkTaskCollisionResult: (
+      callback: (data: { collision: boolean } & SuccessResponse) => void
+    ) => void,
+
     createTaskSubmit: (data: CreateTaskFormData) => void
     createTaskResult: (
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
@@ -88,6 +93,16 @@ interface Window {
 
     pauseTask: ({ taskId }: { taskId: Task['id'] }) => void
     pauseTaskResult: (
+      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    ) => void
+
+    completeTask: ({ taskId }: { taskId: Task['id'] }) => void
+    completeTaskResult: (
+      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    ) => void
+
+    cancelTask: ({ taskId }: { taskId: Task['id'] }) => void
+    cancelTaskResult: (
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
     ) => void
   }
@@ -106,9 +121,18 @@ type EventPayloadMapping = {
 
   getCreateTaskInfo: Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
+  checkTaskCollision: CreateTaskFormData
+  checkTaskCollisionResult: { collision: boolean } & SuccessResponse
+
   createTaskSubmit: CreateTaskFormData
   createTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 
   pauseTask: { taskId: Task['id'] }
   pauseTaskResult: { task: Task } & SuccessResponse | ErrorResponse
+
+  cancelTask: { taskId: Task['id'] }
+  cancelTaskResult: { task: Task } & SuccessResponse | ErrorResponse
+
+  completeTask: { taskId: Task['id'] }
+  completeTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 }
