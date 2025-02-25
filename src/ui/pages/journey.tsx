@@ -88,6 +88,9 @@ export function JourneyLayout() {
                 }
               </Button>
             </form >
+            <Button>
+              Take screenshoot
+            </Button>
           </div>
         )
       }

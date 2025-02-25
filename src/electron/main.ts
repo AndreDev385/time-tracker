@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, screen, desktopCapturer } from 'electron'
 import { isDev } from './lib/utils.js'
 import { getPreloadPath } from './lib/path-resolver.js'
 import { createTray } from './tray.js'
@@ -13,6 +13,8 @@ import { startJourney } from './server/journeys/start-journey.js'
 import { endJourney } from './server/journeys/end-journey.js'
 import { cancelTask, completeTask, pauseTaskInterval } from './server/tasks/end-task-interval.js'
 import { checkTaskCollision } from './server/tasks/check-task-collision.js'
+import { getMyTasks } from './server/tasks/get-my-tasks.js'
+import { resumeTask } from './server/tasks/resume-task.js'
 
 app.on("ready", function() {
 	const mainWindow = new BrowserWindow({
@@ -37,6 +39,8 @@ app.on("ready", function() {
 	})
 
 	ipcMainHandle('checkToken', () => me())
+	ipcMainHandle('getMyTasks', () => getMyTasks())
+
 	ipcMainHandle('getCreateTaskInfo', () => getCreateTaskInfo())
 
 	ipcMainOn("startJourney", async () => {
@@ -75,6 +79,13 @@ app.on("ready", function() {
 		const result = await pauseTaskInterval(data.taskId)
 		console.log("main pausee", { result })
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
+	})
+
+	ipcMainOn("resumeTask", async (data: { taskId: Task['id'] }) => {
+		console.log({ data })
+		const result = await resumeTask(data.taskId)
+		console.log("main resume", { result })
+		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 	})
 
 	ipcMainOn("completeTask", async (data: { taskId: Task['id'] }) => {
@@ -116,5 +127,21 @@ function handleCloseEvents(mainWindow: BrowserWindow) {
 	mainWindow.on('show', () => {
 		willClose = false;
 	});
+}
+
+async function captureScreen() {
+	const primaryDisplay = screen.getPrimaryDisplay()
+	const { width, height } = primaryDisplay.size
+
+	const sources = await desktopCapturer.getSources({
+		types: ["screen"],
+		thumbnailSize: {
+			width: width,
+			height: height,
+		},
+	})
+
+	const primarySource = sources.find(({ display_id }) => display_id === String(primaryDisplay.id))
+	return primarySource?.thumbnail.toDataURL()
 }
 

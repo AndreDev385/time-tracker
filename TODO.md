@@ -11,10 +11,15 @@ It should ask if the task have a collision and if it does, ask the user to choos
 
 - [ ] The app can't be closed if there's a journey in progress
 
-- [ ] Pending tasks list
+- [x] Pending tasks list
+
+- [ ] Take screenshots of the main screen
+  - [ ] Test it 
+  - [ ] `Firestore` upload 
 
 - [ ] While checking token, show a loading spinner
 
 - [ ] Improve re renderings in the app
   - Tasks page
+  - [ ] prove to store all ipc responses in one `useEffect`
 

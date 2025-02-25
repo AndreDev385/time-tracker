@@ -12,6 +12,7 @@ electron.contextBridge.exposeInMainWorld('electron', {
 	},
 
 	checkToken: async () => await ipcInvoke('checkToken'),
+	getMyTasks: async () => await ipcInvoke('getMyTasks'),
 
 	startJourney: () => {
 		ipcSend('startJourney', undefined);
@@ -55,6 +56,15 @@ electron.contextBridge.exposeInMainWorld('electron', {
 	},
 	pauseTaskResult: (callback) => {
 		ipcOn('pauseTaskResult', (data) => {
+			callback(data)
+		})
+	},
+
+	resumeTask(data) {
+		ipcSend('resumeTask', data);
+	},
+	resumeTaskResult: (callback) => {
+		ipcOn('resumeTaskResult', (data) => {
 			callback(data)
 		})
 	},

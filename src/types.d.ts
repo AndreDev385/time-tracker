@@ -72,6 +72,8 @@ interface Window {
     signInResult: (callback: (data: SignInResult) => void) => void
 
     checkToken: () => Promise<({ user: JWTTokenData } & SuccessResponse) | ErrorResponse>
+    getMyTasks: () => Promise<({ tasks: Task[] } & SuccessResponse) | ErrorResponse>
+
     startJourney: () => void
     startJourneyResult: (callback: (data: { journey: Journey } & SuccessResponse | ErrorResponse) => void) => void
     endJourney: (id: number) => void
@@ -96,12 +98,17 @@ interface Window {
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
     ) => void
 
-    completeTask: ({ taskId }: { taskId: Task['id'] }) => void
+    resumeTask: ({ taskId }: { taskId: Task['id'] }) => void
+    resumeTaskResult: (
+      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    ) => void
+
+    completeTask: ({ taskId, comment }: { taskId: Task['id'], comment?: string }) => void
     completeTaskResult: (
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
     ) => void
 
-    cancelTask: ({ taskId }: { taskId: Task['id'] }) => void
+    cancelTask: ({ taskId, comment }: { taskId: Task['id'], comment?: string }) => void
     cancelTaskResult: (
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
     ) => void
@@ -113,6 +120,7 @@ type EventPayloadMapping = {
   signInResult: SignInResult
 
   checkToken: Promise<({ user: JWTTokenData } & SuccessResponse) | ErrorResponse>
+  getMyTasks: Promise<({ tasks: Task[] } & SuccessResponse) | ErrorResponse>
 
   startJourney: void
   startJourneyResult: { journey: Journey } & SuccessResponse | ErrorResponse
@@ -130,9 +138,12 @@ type EventPayloadMapping = {
   pauseTask: { taskId: Task['id'] }
   pauseTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 
-  cancelTask: { taskId: Task['id'] }
+  resumeTask: { taskId: Task['id'] }
+  resumeTaskResult: { task: Task } & SuccessResponse | ErrorResponse
+
+  cancelTask: { taskId: Task['id'], comment?: string }
   cancelTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 
-  completeTask: { taskId: Task['id'] }
+  completeTask: { taskId: Task['id'], comment?: string }
   completeTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 }
