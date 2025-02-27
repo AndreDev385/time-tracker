@@ -4,14 +4,15 @@ import { API_URL } from "../config.js"
 
 type EndTaskIntervalIntent = "complete" | "cancel" | "pause"
 
-
 async function endTaskInterval(
 	intent: EndTaskIntervalIntent,
+	isOtherTask: boolean,
 	taskId: Task['id'],
-): Promise<{ task: Task } & SuccessResponse | ErrorResponse> {
+): Promise<SuccessResponse | ErrorResponse> {
 	try {
+		const URL = isOtherTask ? `${API_URL}/other-tasks/${taskId}` : `${API_URL}/tasks/${taskId}`
 		const token = readToken()?.token
-		const response = await net.fetch(`${API_URL}/tasks/${taskId}`, {
+		const response = await net.fetch(URL, {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",
@@ -22,19 +23,12 @@ async function endTaskInterval(
 			}),
 		})
 
-		const json = await response.json()
 		if (!response.ok) {
 			return { success: false, error: "Ha ocurrido un error" }
 		}
-		console.log({ json })
+
 		return {
 			success: response.ok,
-			task: {
-				...json.task,
-				intervals: json.task.intervals.map((i: { startAt: string, endAt: string | null }) => (
-					{ startAt: new Date(i.startAt), endAt: i.endAt ? new Date(i.endAt) : null }
-				))
-			}
 		}
 	} catch (e) {
 		console.log(`end-task-interval: ${intent}`, { e })
@@ -42,8 +36,10 @@ async function endTaskInterval(
 	}
 }
 
-const curriedEnTaskInterval = (status: EndTaskIntervalIntent) => ((id: Task['id']) => endTaskInterval(status, id))
+const curriedEnTaskInterval = (status: EndTaskIntervalIntent) => (isOtherTask: boolean) => (id: Task['id']) => endTaskInterval(status, isOtherTask, id)
 
-export const completeTask = curriedEnTaskInterval("complete")
-export const cancelTask = curriedEnTaskInterval("cancel")
-export const pauseTaskInterval = curriedEnTaskInterval("pause")
+export const completeTask = curriedEnTaskInterval("complete")(false)
+export const cancelTask = curriedEnTaskInterval("cancel")(false)
+export const pauseTaskInterval = curriedEnTaskInterval("pause")(false)
+
+export const completeOtherTask = curriedEnTaskInterval("complete")(true) 

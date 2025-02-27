@@ -3,11 +3,14 @@ import { useNavigate } from "react-router";
 import { Button } from "../components/shared/button";
 import { Loader2 } from "lucide-react";
 import { LocalStorage } from "../storage";
+import { ROUTES } from "../main";
 
 export function SignInPage() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState("");
+
+  const [loading, setLoading] = React.useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,17 +26,20 @@ export function SignInPage() {
   React.useEffect(function checkToken() {
     const token = LocalStorage().getItem("token");
     if (token) {
+      setLoading(true);
       window.electron.checkToken().then((data) => {
         if (data.success) {
           LocalStorage().setItem("user", data.user);
-          navigate("/journey");
+          navigate(ROUTES.journey);
         }
+      }).finally(() => {
+        setLoading(false);
       })
     }
   }, [navigate])
 
   React.useEffect(function signInResult() {
-    window.electron.signInResult((data) => {
+    return window.electron.signInResult((data) => {
       setSubmitting(false);
       if (data.success) {
         setError("");
@@ -41,7 +47,7 @@ export function SignInPage() {
         window.electron.checkToken().then((data) => {
           if (data.success) {
             LocalStorage().setItem("user", data.user);
-            navigate("/journey");
+            navigate(ROUTES.journey);
           } else {
             setError("Error al iniciar sesión")
           }
@@ -50,7 +56,16 @@ export function SignInPage() {
         setError(data.error);
       }
     });
+    return unsubscribe
   }, [navigate])
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="size-10 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

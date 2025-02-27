@@ -27,6 +27,12 @@ type CreateTaskFormData = {
   recordId: string;
 }
 
+type CreateOtherTaskData = {
+  userId: number
+  comment: string;
+  defaultOptionId?: number
+}
+
 type JWTTokenData = {
   id: numer,
   name: string,
@@ -40,12 +46,14 @@ type Project = { id: number, name: string }
 type Business = { id: number, name: string }
 type TaskType = { id: number, name: string }
 type RecordType = { id: number, name: string }
+type OtherTaskOption = { id: number, value: string }
 
 type CreateTaskInfo = {
   projects: Project[]
   business: Business[]
   taskTypes: TaskType[]
   recordTypes: RecordType[]
+  otherTaskOptions: OtherTaskOption[]
 }
 
 type Interval = {
@@ -63,11 +71,23 @@ type Task = {
   recordId: number
   intervals: Interval[]
   comment: string
-  status: "pending" | "canceled" | "solved"
+  status: "pending" | "canceled" | "solved" | "paused"
+}
+
+type OtherTask = {
+  id: number
+  userId: number
+  defaultOptionId?: number
+  comment: string
+  intervals: Interval[]
+  status: "pending" | "canceled" | "solved" | "paused"
 }
 
 interface Window {
   electron: {
+    takeScreenshot: () => void
+    screenShotResult: (callback: (data: string | undefined) => void) => void
+
     signInSubmit: (data: SignInFormData) => void
     signInResult: (callback: (data: SignInResult) => void) => void
 
@@ -93,29 +113,40 @@ interface Window {
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
     ) => void
 
-    pauseTask: ({ taskId }: { taskId: Task['id'] }) => void
-    pauseTaskResult: (
-      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    createOtherTaskSubmit: (data: CreateOtherTaskData) => void
+    createOtherTaskResult: (
+      callback: (data: { otherTask: OtherTask } & SuccessResponse | ErrorResponse) => void
     ) => void
 
-    resumeTask: ({ taskId }: { taskId: Task['id'] }) => void
+    resumeTask: (data: { taskId: Task['id'], isOtherTask?: boolean }) => void
     resumeTaskResult: (
       callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
     ) => void
 
-    completeTask: ({ taskId, comment }: { taskId: Task['id'], comment?: string }) => void
-    completeTaskResult: (
-      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+    pauseTask: (data: { taskId: Task['id'] }) => void
+    pauseTaskResult: (
+      callback: (data: SuccessResponse | ErrorResponse) => void
     ) => void
 
-    cancelTask: ({ taskId, comment }: { taskId: Task['id'], comment?: string }) => void
+    completeTask: (data: { taskId: Task['id'], isOtherTask?: boolean, comment?: string }) => void
+    completeTaskResult: (
+      callback: (data: SuccessResponse | ErrorResponse) => void
+    ) => void
+    completeOtherTaskResult: (
+      callback: (data: SuccessResponse | ErrorResponse) => void
+    ) => void
+
+    cancelTask: (data: { taskId: Task['id'], comment?: string }) => void
     cancelTaskResult: (
-      callback: (data: { task: Task } & SuccessResponse | ErrorResponse) => void
+      callback: (data: SuccessResponse | ErrorResponse) => void
     ) => void
   }
 }
 
 type EventPayloadMapping = {
+  takeScreenshot: void
+  screenShotResult: string | undefined
+
   signInSubmit: SignInFormData
   signInResult: SignInResult
 
@@ -135,15 +166,19 @@ type EventPayloadMapping = {
   createTaskSubmit: CreateTaskFormData
   createTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 
-  pauseTask: { taskId: Task['id'] }
-  pauseTaskResult: { task: Task } & SuccessResponse | ErrorResponse
+  createOtherTaskSubmit: CreateOtherTaskData
+  createOtherTaskResult: { otherTask: OtherTask } & SuccessResponse | ErrorResponse
 
   resumeTask: { taskId: Task['id'] }
   resumeTaskResult: { task: Task } & SuccessResponse | ErrorResponse
 
-  cancelTask: { taskId: Task['id'], comment?: string }
-  cancelTaskResult: { task: Task } & SuccessResponse | ErrorResponse
+  pauseTask: { taskId: Task['id'] }
+  pauseTaskResult: SuccessResponse | ErrorResponse
 
-  completeTask: { taskId: Task['id'], comment?: string }
-  completeTaskResult: { task: Task } & SuccessResponse | ErrorResponse
+  cancelTask: { taskId: Task['id'], comment?: string }
+  cancelTaskResult: SuccessResponse | ErrorResponse
+
+  completeTask: { taskId: Task['id'], comment?: string, isOtherTask?: boolean }
+  completeTaskResult: SuccessResponse | ErrorResponse
+  completeOtherTaskResult: SuccessResponse | ErrorResponse
 }

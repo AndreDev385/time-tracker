@@ -2,6 +2,15 @@
 import electron from 'electron'
 
 electron.contextBridge.exposeInMainWorld('electron', {
+	takeScreenshot: () => {
+		ipcSend("takeScreenshot", undefined)
+	},
+	screenShotResult(callback) {
+		ipcOn("screenShotResult", (data) => {
+			callback(data)
+		})
+	},
+
 	signInSubmit: (data: SignInFormData) => {
 		ipcSend('signInSubmit', data);
 	},
@@ -51,6 +60,15 @@ electron.contextBridge.exposeInMainWorld('electron', {
 		})
 	},
 
+	createOtherTaskSubmit(data) {
+		ipcSend('createOtherTaskSubmit', data);
+	},
+	createOtherTaskResult(callback) {
+		ipcOn('createOtherTaskResult', (data) => {
+			callback(data)
+		})
+	},
+
 	pauseTask(data) {
 		ipcSend('pauseTask', data);
 	},
@@ -74,6 +92,11 @@ electron.contextBridge.exposeInMainWorld('electron', {
 	},
 	completeTaskResult: (callback) => {
 		ipcOn('completeTaskResult', (data) => {
+			callback(data)
+		})
+	},
+	completeOtherTaskResult(callback) {
+		ipcOn('completeOtherTaskResult', (data) => {
 			callback(data)
 		})
 	},

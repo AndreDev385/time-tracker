@@ -6,7 +6,6 @@ export function isDev(): boolean {
 	return process.env.NODE_ENV === 'development';
 }
 
-
 export function validateEventFrame(frame: WebFrameMain) {
 	if (isDev() && new URL(frame.url).host === 'localhost:5123') {
 		return;

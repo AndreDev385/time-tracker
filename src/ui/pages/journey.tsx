@@ -7,12 +7,14 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 import { Button } from "../components/shared/button";
 import { LocalStorage } from "../storage";
 import { displayMessage } from "../lib/utils";
-import { JourneyTimer } from "../components/journey-timer";
+import { JourneyTimer } from "../components/tasks/journey-timer";
 import { Separator } from "../components/shared/separator";
 
 export function JourneyLayout() {
   const [submitting, setSubmitting] = React.useState(false);
   const [journey, setJourney] = React.useState<{ id: Journey['id'], startAt: Journey['startAt'] } | null>(null)
+
+  const [img, setImage] = React.useState("")
 
   React.useEffect(function loadJourney() {
     const journey = LocalStorage().getItem("journey")
@@ -27,7 +29,7 @@ export function JourneyLayout() {
   }
 
   React.useEffect(function startJourneyResult() {
-    window.electron.startJourneyResult((data) => {
+    return window.electron.startJourneyResult((data) => {
       setSubmitting(false)
       if (data.success) {
         LocalStorage().setItem("journey", data.journey)
@@ -44,7 +46,7 @@ export function JourneyLayout() {
   }
 
   React.useEffect(function stopJourneyResponse() {
-    window.electron.endJourneyResult((data) => {
+    return window.electron.endJourneyResult((data) => {
       if (data.success) {
         LocalStorage().removeItem("journey")
         setJourney(null)
@@ -54,8 +56,14 @@ export function JourneyLayout() {
     })
   }, [])
 
+  React.useEffect(function loadScreenshot() {
+    return window.electron.screenShotResult((data) => {
+      setImage(data ?? "")
+    })
+  }, [])
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen">
       {
         journey ? (
           <div className="space-y-6 max-w-md w-full">
@@ -88,9 +96,21 @@ export function JourneyLayout() {
                 }
               </Button>
             </form >
-            <Button>
-              Take screenshoot
-            </Button>
+            <div className="flex flex-col gap-4 justify-center items-center mt-8">
+              <div className="flex gap-4 justify-center">
+                <Button
+                  onMouseDown={() => window.electron.takeScreenshot()}
+                >
+                  Screen shoot
+                </Button>
+                <Button
+                  onMouseDown={() => setImage("")}
+                >
+                  Reset
+                </Button>
+              </div>
+              <img className="max-w-6xl" src={img} />
+            </div>
           </div>
         )
       }

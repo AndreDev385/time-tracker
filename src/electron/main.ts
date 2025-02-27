@@ -11,10 +11,11 @@ import { ipcMainHandle, ipcMainOn, ipcWebContentsSend } from './lib/ipc-main-han
 import { getCreateTaskInfo } from './server/tasks/get-create-task-info.js'
 import { startJourney } from './server/journeys/start-journey.js'
 import { endJourney } from './server/journeys/end-journey.js'
-import { cancelTask, completeTask, pauseTaskInterval } from './server/tasks/end-task-interval.js'
+import { cancelTask, completeOtherTask, completeTask, pauseTaskInterval } from './server/tasks/end-task-interval.js'
 import { checkTaskCollision } from './server/tasks/check-task-collision.js'
 import { getMyTasks } from './server/tasks/get-my-tasks.js'
 import { resumeTask } from './server/tasks/resume-task.js'
+import { createOtherTask } from './server/other-tasks/create-other-task.js'
 
 app.on("ready", function() {
 	const mainWindow = new BrowserWindow({
@@ -74,32 +75,41 @@ app.on("ready", function() {
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 	})
 
-	ipcMainOn("pauseTask", async (data: { taskId: Task['id'] }) => {
-		console.log({ data })
+	ipcMainOn("createOtherTaskSubmit", async (data) => {
+		const result = await createOtherTask(data)
+		console.log("main createOtherTaskSubmit", { result })
+		ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result)
+	})
+
+	ipcMainOn("pauseTask", async (data) => {
 		const result = await pauseTaskInterval(data.taskId)
-		console.log("main pausee", { result })
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 	})
 
-	ipcMainOn("resumeTask", async (data: { taskId: Task['id'] }) => {
-		console.log({ data })
+	ipcMainOn("resumeTask", async (data) => {
 		const result = await resumeTask(data.taskId)
-		console.log("main resume", { result })
 		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 	})
 
-	ipcMainOn("completeTask", async (data: { taskId: Task['id'] }) => {
-		console.log({ data })
-		const result = await completeTask(data.taskId)
-		console.log("main completeTask", { result })
-		ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result)
+	ipcMainOn("completeTask", async (data) => {
+		if (data.isOtherTask) {
+			const result = await completeOtherTask(data.taskId)
+			ipcWebContentsSend("completeOtherTaskResult", mainWindow.webContents, result)
+		} else {
+			const result = await completeTask(data.taskId)
+			ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result)
+		}
 	})
 
-	ipcMainOn("cancelTask", async (data: { taskId: Task['id'] }) => {
-		console.log({ data })
+	ipcMainOn("cancelTask", async (data) => {
 		const result = await cancelTask(data.taskId)
-		console.log("main cancelTask", { result })
 		ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result)
+	})
+
+	ipcMainOn("takeScreenshot", async () => {
+		const result = await captureScreen()
+		console.log({ image: result })
+		ipcWebContentsSend("screenShotResult", mainWindow.webContents, result)
 	})
 
 	createTray(mainWindow)
