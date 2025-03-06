@@ -61,6 +61,8 @@ type Interval = {
   endAt: Date | null
 }
 
+type TaskStatus = "pending" | "canceled" | "solved" | "paused"
+
 type Task = {
   id: number
   userId: number
@@ -71,7 +73,7 @@ type Task = {
   recordId: number
   intervals: Interval[]
   comment: string
-  status: "pending" | "canceled" | "solved" | "paused"
+  status: TaskStatus
 }
 
 type OtherTask = {
@@ -80,7 +82,7 @@ type OtherTask = {
   defaultOptionId?: number
   comment: string
   intervals: Interval[]
-  status: "pending" | "canceled" | "solved" | "paused"
+  status: TaskStatus
 }
 
 interface Window {
@@ -140,6 +142,13 @@ interface Window {
     cancelTaskResult: (
       callback: (data: SuccessResponse | ErrorResponse) => void
     ) => void
+
+    getToolbarTask: () => Promise<({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse>
+    reloadToolbarData: (callback: (data: { task?: Task | OtherTask } & SuccessResponse | ErrorResponse) => void) => void
+
+    openMainWindow: () => void
+
+    getTodaysTasks: () => Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse>
   }
 }
 
@@ -181,4 +190,11 @@ type EventPayloadMapping = {
   completeTask: { taskId: Task['id'], comment?: string, isOtherTask?: boolean }
   completeTaskResult: SuccessResponse | ErrorResponse
   completeOtherTaskResult: SuccessResponse | ErrorResponse
+
+  getToolbarTask: Promise<({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse>
+  reloadToolbarData: { task?: Task | OtherTask } & SuccessResponse | ErrorResponse
+
+  openMainWindow: void
+
+  getTodaysTasks: Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse>
 }

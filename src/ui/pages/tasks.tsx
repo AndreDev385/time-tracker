@@ -9,6 +9,7 @@ import { OtherTaskForm } from "../components/tasks/other-task-form"
 import { ROUTES } from "../main"
 import { DropdownCard } from "../components/shared/dropdown"
 import { PendingTask } from "../components/tasks/pending-task"
+import { isTask } from "../lib/check-task-type"
 
 export function TasksPage() {
   const navigate = useNavigate()
@@ -49,6 +50,17 @@ export function TasksPage() {
     OTHER_TASK_FORM_INITIAL_STATE
   )
   /**/
+
+  React.useEffect(() => {
+    const curr = LocalStorage().getItem("currTask")
+    if (curr) {
+      if (isTask(curr)) {
+        navigate(ROUTES.inProgressTask, { state: { task: curr } })
+      } else {
+        navigate(ROUTES.inProgressOtherTask, { state: { otherTask: curr } })
+      }
+    }
+  }, [])
 
   React.useEffect(function loadMyTasks() {
     async function getMyTasks() {
@@ -94,6 +106,7 @@ export function TasksPage() {
     return window.electron.createTaskResult((result) => {
       setLoading(false)
       if (result.success) {
+        LocalStorage().setItem("currTask", result.task)
         navigate(ROUTES.inProgressTask, { state: { task: result.task } })
       } else {
         displayMessage(result.error, "error")
@@ -106,6 +119,7 @@ export function TasksPage() {
     return window.electron.createOtherTaskResult((result) => {
       setLoading(false)
       if (result.success) {
+        LocalStorage().setItem("currTask", result.otherTask)
         navigate(ROUTES.inProgressOtherTask, { state: { otherTask: result.otherTask } })
       } else {
         displayMessage(result.error, "error")

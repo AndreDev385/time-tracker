@@ -6,6 +6,7 @@ import { displayMessage } from "../lib/utils"
 import { useLocation, useNavigate } from "react-router"
 import { ActiveTask } from "../components/tasks/active-task"
 import { ROUTES } from "../main"
+import { LocalStorage } from "../storage"
 
 export function InProgressTask() {
   const navigate = useNavigate()
@@ -30,6 +31,7 @@ export function InProgressTask() {
       setLoading(false)
       if (data.success) {
         displayMessage("La tarea se ha pausado", "success")
+        LocalStorage().removeItem("currTask")
         navigate(ROUTES.journey)
       } else {
         displayMessage(data.error, "error")
@@ -47,6 +49,7 @@ export function InProgressTask() {
       setLoading(false)
       if (data.success) {
         displayMessage("La tarea se ha completado", "success")
+        LocalStorage().removeItem("currTask")
         navigate(ROUTES.journey)
       } else {
         displayMessage(data.error, "error")
@@ -64,6 +67,7 @@ export function InProgressTask() {
       setLoading(false)
       if (data.success) {
         displayMessage("La tarea se ha cancelado", "success")
+        LocalStorage().removeItem("currTask")
         navigate(ROUTES.journey)
       } else {
         displayMessage(data.error, "error")
@@ -92,6 +96,8 @@ export function InProgressTask() {
       </div>
     </div>
   ) : (
-    <ActiveTask task={task!} loading={loading} setComment={setComment} handlePauseTask={handlePauseTask} />
+    <div className="border border-gray-300 rounded-lg p-4">
+      <ActiveTask task={task!} loading={loading} setComment={setComment} handlePauseTask={handlePauseTask} />
+    </div>
   )
 }

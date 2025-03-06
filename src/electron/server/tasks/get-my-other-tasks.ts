@@ -2,13 +2,11 @@ import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
 
-//TODO: Update to add date range
-
-export async function getMyTasks(statuses: TaskStatus[], startAt?: Date): Promise<{ tasks: Task[] } & SuccessResponse | ErrorResponse> {
+export async function getMyOtherTasks(statuses: TaskStatus[], startAt?: Date): Promise<{ otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse> {
 	try {
 		const token = readToken()?.token ?? ''
 
-		const url = new URL(`${API_URL}/tasks`)
+		const url = new URL(`${API_URL}/other-tasks`)
 		for (const s of statuses) {
 			url.searchParams.set("status", s)
 		}
@@ -31,7 +29,7 @@ export async function getMyTasks(statuses: TaskStatus[], startAt?: Date): Promis
 		const data = await response.json()
 		return {
 			success: true,
-			tasks: data,
+			otherTasks: data,
 		}
 
 	} catch (e) {

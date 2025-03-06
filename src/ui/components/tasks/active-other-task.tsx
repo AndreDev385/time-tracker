@@ -7,7 +7,7 @@ export function ActiveOtherTask({
   handleCompleteTask,
 }: Props) {
   return (
-    <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg items-center">
+    <div className="flex justify-between gap-4 items-center">
       <div>
         <h1>{otherTask.comment}</h1>
       </div>

@@ -9,7 +9,7 @@ export function ActiveTask({
   handlePauseTask,
 }: Props) {
   return (
-    <div className="flex justify-between p-4 border border-gray-300 rounded-lg shadow-lg items-center">
+    <div className="flex justify-between gap-4 items-center">
       <div>
         <h1>Expediente: {task.recordId}</h1>
       </div>

@@ -9,12 +9,17 @@ import { LocalStorage } from "../storage";
 import { displayMessage } from "../lib/utils";
 import { JourneyTimer } from "../components/tasks/journey-timer";
 import { Separator } from "../components/shared/separator";
+import { FinishedTask } from "../components/tasks/finished-task";
+import { FinishedOtherTask } from "../components/tasks/finished-other-task";
 
 export function JourneyLayout() {
   const [submitting, setSubmitting] = React.useState(false);
   const [journey, setJourney] = React.useState<{ id: Journey['id'], startAt: Journey['startAt'] } | null>(null)
 
   const [img, setImage] = React.useState("")
+
+  const [tasks, setTasks] = React.useState<Task[]>([])
+  const [otherTasks, setOtherTasks] = React.useState<OtherTask[]>([])
 
   React.useEffect(function loadJourney() {
     const journey = LocalStorage().getItem("journey")
@@ -62,14 +67,42 @@ export function JourneyLayout() {
     })
   }, [])
 
+  React.useEffect(function completedTask() {
+    window.electron.getTodaysTasks().then(data => {
+      if (data.success) {
+        setTasks(data.tasks)
+        setOtherTasks(data.otherTasks)
+      }
+    })
+  })
+
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen ">
       {
         journey ? (
-          <div className="space-y-6 max-w-md w-full">
-            <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
-            <Separator />
-            <Outlet />
+          <div className="flex gap-4 max-w-4xl w-full">
+            <div className="space-y-6 w-2/3">
+              <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
+              <Separator />
+              <Outlet />
+            </div>
+            <div className="w-1/3 space-y-2">
+              {/* completed tasks */}
+              <div className="flex flex-col gap-2">
+                {
+                  tasks.map(t => (
+                    <FinishedTask key={t.id} task={t} />
+                  ))
+                }
+              </div>
+              <div className="flex flex-col gap-2">
+                {
+                  otherTasks.map(t => (
+                    <FinishedOtherTask key={t.id} task={t} />
+                  ))
+                }
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-screen">

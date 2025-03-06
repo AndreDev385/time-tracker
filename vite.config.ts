@@ -8,6 +8,12 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'dist-react',
+    rollupOptions: {
+      input: {
+        main: "./index.html",
+        toolbar: "./toolbar.html"
+      }
+    }
   },
   server: {
     port: 5123,

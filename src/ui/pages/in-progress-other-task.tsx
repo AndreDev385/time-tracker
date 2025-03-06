@@ -3,6 +3,7 @@ import { displayMessage } from "../lib/utils"
 import { useLocation, useNavigate } from "react-router"
 import { ActiveOtherTask } from "../components/tasks/active-other-task"
 import { ROUTES } from "../main"
+import { LocalStorage } from "../storage"
 
 export function InProgressOtherTask() {
   const navigate = useNavigate()
@@ -22,6 +23,7 @@ export function InProgressOtherTask() {
       setLoading(false)
       if (data.success) {
         displayMessage("La tarea se ha completado", "success")
+        LocalStorage().removeItem("currTask")
         navigate(ROUTES.journey)
       } else {
         displayMessage(data.error, "error")
@@ -31,10 +33,13 @@ export function InProgressOtherTask() {
   }, [])
 
   return (
-    <ActiveOtherTask
-      otherTask={otherTask}
-      loading={loading}
-      handleCompleteTask={handleCompleteTask}
-    />
+
+    <div className="border border-gray-300 rounded-lg p-4">
+      <ActiveOtherTask
+        otherTask={otherTask}
+        loading={loading}
+        handleCompleteTask={handleCompleteTask}
+      />
+    </div>
   )
 }

@@ -109,6 +109,19 @@ electron.contextBridge.exposeInMainWorld('electron', {
 			callback(data)
 		})
 	},
+
+	getToolbarTask: async () => await ipcInvoke("getToolbarTask"),
+	reloadToolbarData: (callback) => {
+		ipcOn('reloadToolbarData', (data) => {
+			callback(data)
+		})
+	},
+
+	openMainWindow: () => {
+		ipcSend("openMainWindow", undefined)
+	},
+	getTodaysTasks: async () => ipcInvoke("getTodaysTasks")
+
 } satisfies Window['electron'])
 
 // ----------------------------
