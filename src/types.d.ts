@@ -88,7 +88,7 @@ type OtherTask = {
 interface Window {
   electron: {
     takeScreenshot: () => void
-    screenShotResult: (callback: (data: string | undefined) => void) => void
+    screenShotResult: (callback: (data: string[]) => void) => void
 
     signInSubmit: (data: SignInFormData) => void
     signInResult: (callback: (data: SignInResult) => void) => void
@@ -154,7 +154,7 @@ interface Window {
 
 type EventPayloadMapping = {
   takeScreenshot: void
-  screenShotResult: string | undefined
+  screenShotResult: string[]
 
   signInSubmit: SignInFormData
   signInResult: SignInResult

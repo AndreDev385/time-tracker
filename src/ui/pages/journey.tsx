@@ -16,7 +16,7 @@ export function JourneyLayout() {
   const [submitting, setSubmitting] = React.useState(false);
   const [journey, setJourney] = React.useState<{ id: Journey['id'], startAt: Journey['startAt'] } | null>(null)
 
-  const [img, setImage] = React.useState("")
+  const [imgs, setImgs] = React.useState<string[]>([])
 
   const [tasks, setTasks] = React.useState<Task[]>([])
   const [otherTasks, setOtherTasks] = React.useState<OtherTask[]>([])
@@ -63,7 +63,8 @@ export function JourneyLayout() {
 
   React.useEffect(function loadScreenshot() {
     return window.electron.screenShotResult((data) => {
-      setImage(data ?? "")
+      console.log({ data })
+      setImgs(data)
     })
   }, [])
 
@@ -137,12 +138,18 @@ export function JourneyLayout() {
                   Screen shoot
                 </Button>
                 <Button
-                  onMouseDown={() => setImage("")}
+                  onMouseDown={() => setImgs([])}
                 >
                   Reset
                 </Button>
               </div>
-              <img className="max-w-6xl" src={img} />
+              <div>
+                {
+                  imgs.map(i => (
+                    <img key={i} className="max-w-6xl" src={i} />
+                  ))
+                }
+              </div>
             </div>
           </div>
         )

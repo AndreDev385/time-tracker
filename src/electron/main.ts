@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { app, BrowserWindow, screen, desktopCapturer } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import { isDev } from './lib/utils.js'
 import { getPreloadPath } from './lib/path-resolver.js'
 import { createTray } from './tray.js'
@@ -19,6 +19,8 @@ import { createOtherTask } from './server/other-tasks/create-other-task.js'
 import { getActualJourney } from './server/journeys/get-actual-journey.js'
 import { getCurrTask } from './server/tasks/get-curr-task.js'
 import { todayCompletedTasks } from './server/tasks/today-completed-tasks.js'
+import { captureScreens } from './lib/capture-screens.js'
+import { testCredentials, uploadFile } from './lib/upload-captures.js'
 
 app.on("ready", function() {
 	const mainWindow = createWindow(
@@ -138,8 +140,9 @@ app.on("ready", function() {
 	ipcMainHandle("getTodaysTasks", () => todayCompletedTasks())
 
 	ipcMainOn("takeScreenshot", async () => {
-		const result = await captureScreen()
-		console.log({ image: result })
+		const result = await captureScreens()
+		await testCredentials()
+		await uploadFile(result[0])
 		ipcWebContentsSend("screenShotResult", mainWindow.webContents, result)
 	})
 
@@ -213,20 +216,4 @@ function createWindow(
 	}
 
 	return win
-}
-
-async function captureScreen() {
-	const primaryDisplay = screen.getPrimaryDisplay()
-	const { width, height } = primaryDisplay.size
-
-	const sources = await desktopCapturer.getSources({
-		types: ["screen"],
-		thumbnailSize: {
-			width: width,
-			height: height,
-		},
-	})
-
-	const primarySource = sources.find(({ display_id }) => display_id === String(primaryDisplay.id))
-	return primarySource?.thumbnail.toDataURL()
 }

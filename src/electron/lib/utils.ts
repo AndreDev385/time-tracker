@@ -1,9 +1,10 @@
 import { WebFrameMain } from 'electron';
 import { getUIPath } from './path-resolver.js';
 import { pathToFileURL } from 'url';
+import { config } from '../config.js';
 
 export function isDev(): boolean {
-	return process.env.NODE_ENV === 'development';
+	return config.nodeEnv === 'development';
 }
 
 export function validateEventFrame(frame: WebFrameMain) {
