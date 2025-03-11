@@ -4,9 +4,9 @@ import { formatDistanceHHMMSS } from './lib/utils';
 import { Loader2 } from 'lucide-react';
 import { Button } from './components/shared/button';
 import { ActiveTask } from './components/tasks/active-task';
-import { Textarea } from './components/shared/textarea';
 import { ActiveOtherTask } from './components/tasks/active-other-task';
 import { isTask } from './lib/check-task-type';
+import { Input } from './components/shared/input';
 
 export function Toolbar() {
   const [journey, setJourney] = React.useState<{
@@ -112,11 +112,12 @@ export function Toolbar() {
     if (comment.show) {
       return (
         <Wrapper>
-          <div className="flex gap-4">
-            <Textarea
+          <div className="flex w-full gap-4">
+            <Input
               value={comment.value}
               onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
-              placeholder="Ingresa cualquier informacion adicional con respecto al expediente"
+              placeholder="Comentario"
+              className='w-full'
             />
             <div className="flex justify-end">
               <Button

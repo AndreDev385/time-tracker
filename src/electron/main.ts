@@ -1,7 +1,6 @@
-import path from 'node:path'
 import { app, BrowserWindow } from 'electron'
 import { isDev } from './lib/utils.js'
-import { getPreloadPath } from './lib/path-resolver.js'
+import { getMainUIPath, getPreloadPath, getToolbarUIPath } from './lib/path-resolver.js'
 import { createTray } from './tray.js'
 import { signIn } from './server/sign-in.js'
 import { saveToken } from './lib/jwt.js'
@@ -24,18 +23,20 @@ import { testCredentials, uploadFile } from './lib/upload-captures.js'
 
 app.on("ready", function() {
 	const mainWindow = createWindow(
-		isDev() ? "http://localhost:5123" : "/dist-react/index.html",
+		isDev() ? "http://localhost:5123" : getMainUIPath(),
 		{
+			width: 1000,
+			height: 500,
 			webPreferences: {
 				preload: getPreloadPath()
 			},
 		})
 
 	const toolbarWindow: BrowserWindow = createWindow(
-		isDev() ? 'http://localhost:5123/toolbar.html' : '/dist-react/toolbar.html',
+		isDev() ? 'http://localhost:5123/toolbar.html' : getToolbarUIPath(),
 		{
-			width: 400,
-			height: 40,
+			width: 450,
+			height: 60,
 			titleBarStyle: "hidden",
 			frame: false,
 			webPreferences: {
@@ -80,6 +81,8 @@ app.on("ready", function() {
 			console.log("main createTaskSubmit", { result })
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+			showWindow(toolbarWindow)
+			hideWindow(mainWindow, app)
 			return
 		}
 		ipcWebContentsSend("checkTaskCollisionResult", mainWindow.webContents, result)
@@ -90,6 +93,8 @@ app.on("ready", function() {
 		console.log("main createTaskSubmit", { result })
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		hideWindow(mainWindow, app)
+		showWindow(toolbarWindow)
 	})
 
 	ipcMainOn("createOtherTaskSubmit", async (data) => {
@@ -97,18 +102,23 @@ app.on("ready", function() {
 		console.log("main createOtherTaskSubmit", { result })
 		ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result.success ? { success: true, task: result.otherTask } : result)
+		hideWindow(mainWindow, app)
+		showWindow(toolbarWindow)
 	})
 
 	ipcMainOn("pauseTask", async (data) => {
 		const result = await pauseTaskInterval(data.taskId)
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		showWindow(mainWindow)
 	})
 
 	ipcMainOn("resumeTask", async (data) => {
 		const result = await resumeTask(data.taskId)
 		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		showWindow(toolbarWindow)
+		hideWindow(mainWindow, app)
 	})
 
 	ipcMainOn("completeTask", async (data) => {
@@ -121,6 +131,7 @@ app.on("ready", function() {
 			ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 		}
+		showWindow(mainWindow)
 	})
 
 	ipcMainOn("cancelTask", async (data) => {
@@ -128,12 +139,13 @@ app.on("ready", function() {
 		const result = await cancelTask(data.taskId)
 		ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		showWindow(mainWindow)
 	})
 
 	ipcMainHandle('getToolbarTask', () => getCurrTask())
 
 	ipcMainOn("openMainWindow", () => {
-		mainWindow.show()
+		showWindow(mainWindow)
 		mainWindow.focus()
 	})
 
@@ -161,19 +173,8 @@ app.on("ready", function() {
 		console.log({ result })
 		if (result.success) {
 			console.log({ toolbarWindow })
-			if (toolbarWindow && !toolbarWindow.isDestroyed()) {
-				toolbarWindow.show();
-			} else {
-				console.log('Toolbar window does not exist or was destroyed');
-			}
-
-			if (mainWindow && !mainWindow.isDestroyed()) {
-				mainWindow.hide();
-			}
-
-			if (app.dock) {
-				app.dock.hide();
-			}
+			showWindow(toolbarWindow)
+			hideWindow(mainWindow, app)
 		} else {
 			if (mainWindow && !mainWindow.isDestroyed()) {
 				mainWindow.destroy();
@@ -199,6 +200,24 @@ app.on("ready", function() {
 
 })
 
+function showWindow(window: BrowserWindow) {
+	if (window && !window.isDestroyed()) {
+		window.show();
+	} else {
+		console.log('Toolbar window does not exist or was destroyed');
+	}
+}
+
+function hideWindow(window: BrowserWindow, app: Electron.App) {
+	if (window && !window.isDestroyed()) {
+		window.hide();
+	}
+
+	if (app.dock) {
+		app.dock.hide();
+	}
+}
+
 function createWindow(
 	urlOrFile: string,
 	options: Electron.BrowserWindowConstructorOptions,
@@ -212,7 +231,7 @@ function createWindow(
 	if (isDev()) {
 		win.loadURL(urlOrFile)
 	} else {
-		win.loadFile(path.join(app.getAppPath(), urlOrFile))
+		win.loadFile(urlOrFile)
 	}
 
 	return win

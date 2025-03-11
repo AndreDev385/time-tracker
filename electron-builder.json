@@ -1,7 +1,8 @@
 {
   "appId": "com.example.time-tracker",
   "files": [
-    "dist-electron/**/*"
+    "dist-electron",
+    "dist-react"
   ],
   "extraResources": [
     "dist-electron/preload.cjs",

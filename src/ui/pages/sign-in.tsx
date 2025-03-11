@@ -56,7 +56,6 @@ export function SignInPage() {
         setError(data.error);
       }
     });
-    return unsubscribe
   }, [navigate])
 
   if (loading) {

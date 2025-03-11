@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from "../components/shared/button"
-import { Textarea } from "../components/shared/textarea"
 import React from "react"
 import { displayMessage } from "../lib/utils"
 import { useLocation, useNavigate } from "react-router"
 import { ActiveTask } from "../components/tasks/active-task"
 import { ROUTES } from "../main"
 import { LocalStorage } from "../storage"
+import { Input } from "../components/shared/input"
 
 export function InProgressTask() {
   const navigate = useNavigate()
@@ -77,10 +77,10 @@ export function InProgressTask() {
 
   return comment.show ? (
     <div className="flex flex-col gap-4">
-      <Textarea
+      <Input
         value={comment.value}
         onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
-        placeholder="Ingresa cualquier informacion adicional con respecto al expediente"
+        placeholder="Ingresa un comentario"
       />
       <div className="flex justify-end">
         <Button

@@ -10,8 +10,12 @@ export function getPreloadPath() {
 	);
 }
 
-export function getUIPath() {
+export function getMainUIPath() {
 	return path.join(app.getAppPath(), '/dist-react/index.html');
+}
+
+export function getToolbarUIPath() {
+	return path.join(app.getAppPath(), '/dist-react/toolbar.html');
 }
 
 export function getAssetPath() {

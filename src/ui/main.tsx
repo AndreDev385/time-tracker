@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { HashRouter, Route, Routes } from 'react-router'
 
 import './index.css'
 import { SignInPage } from './pages/sign-in'
@@ -19,7 +19,7 @@ export const ROUTES = {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route index element={<SignInPage />} />
         <Route path="journey" element={<JourneyLayout />}>
@@ -29,6 +29,6 @@ createRoot(document.getElementById('root')!).render(
         </Route>
       </Routes>
       <Toaster />
-    </BrowserRouter>
+    </HashRouter>
   </StrictMode>,
 )
