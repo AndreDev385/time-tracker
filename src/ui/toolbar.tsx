@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { LocalStorage } from './storage'
 import { formatDistanceHHMMSS } from './lib/utils';
-import { Loader2 } from 'lucide-react';
+import { GripVertical, Loader2 } from 'lucide-react';
 import { Button } from './components/shared/button';
 import { ActiveTask } from './components/tasks/active-task';
 import { ActiveOtherTask } from './components/tasks/active-other-task';
@@ -23,11 +23,18 @@ export function Toolbar() {
     value: "",
   })
 
+  console.log(loading, journey, currTask)
+
   React.useEffect(function loadJourney() {
-    const journey = LocalStorage().getItem("journey")
-    if (journey) {
-      setJourney(journey)
-    }
+    const interval = setInterval(() => {
+      const journey = LocalStorage().getItem("journey")
+      if (journey) {
+        setJourney(journey)
+        clearInterval(interval)
+      }
+    }, 100); // Check every 100ms (adjust as needed)
+
+    return () => clearInterval(interval); // Cleanup on unmount
   }, [])
 
   React.useEffect(function timer() {
@@ -38,21 +45,9 @@ export function Toolbar() {
     return () => clearInterval(interval)
   }, []);
 
-  // TODO: when reload the component ask for the curr task from server
-  //React.useEffect(function loadInitialTask() {
-  //  window.electron.getToolbarTask().then((data) => {
-  //    console.log({ data })
-  //    if (data.success) {
-  //      if (data.task) {
-  //        setCurrTask(data.task)
-  //      }
-  //    }
-  //  })
-  //}, [])
-
   React.useEffect(function loadCurrTask() {
-    window.electron.reloadToolbarData((data) => {
-      console.log("load curr task", data)
+    return window.electron.reloadToolbarData((data) => {
+      console.log("reload toolbar data", data)
       if (data.success) {
         //reset
         setComment({
@@ -68,9 +63,8 @@ export function Toolbar() {
     })
   }, [])
 
-
-  function handleCompleteTask(taskId: Task['id'], comment?: string) {
-    window.electron.completeTask({ taskId, comment })
+  function handleCompleteTask(taskId: Task['id'], isOtherTask: boolean = false, comment?: string) {
+    window.electron.completeTask({ taskId, comment, isOtherTask })
     window.electron.openMainWindow()
     setLoading(true)
   }
@@ -87,7 +81,7 @@ export function Toolbar() {
     setLoading(true)
   }
 
-  if (!journey) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className='animate-spin size-10' />
@@ -98,7 +92,7 @@ export function Toolbar() {
   if (!currTask) {
     return (
       <Wrapper>
-        <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
+        <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt ?? new Date(), currentTime)}</h2>
         <Button
           onMouseDown={() => window.electron.openMainWindow()}
         >
@@ -123,7 +117,7 @@ export function Toolbar() {
               <Button
                 onMouseDown={() => {
                   if (comment.action === "solved") {
-                    handleCompleteTask(currTask.id, comment.value)
+                    handleCompleteTask(currTask.id, false, comment.value)
                   }
                   if (comment.action === "canceled") {
                     handleCancelTask(currTask.id, comment.value)
@@ -137,7 +131,7 @@ export function Toolbar() {
     } else {
       return (
         <Wrapper>
-          <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
+          <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt ?? new Date(), currentTime)}</h2>
           <ActiveTask task={currTask!} loading={loading} setComment={setComment} handlePauseTask={handlePauseTask} />
         </Wrapper>
       )
@@ -147,7 +141,7 @@ export function Toolbar() {
   // Other task
   return (
     <Wrapper>
-      <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
+      <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt ?? new Date(), currentTime)}</h2>
       <ActiveOtherTask
         otherTask={currTask}
         loading={loading}
@@ -159,11 +153,27 @@ export function Toolbar() {
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="flex flex-row items-center justify-between w-full max-w-lg">
-        {children}
+    <div className="min-h-screen flex items-center justify-center pr-2">
+      <div className='w-full flex'>
+        <Draggable />
+        <div className="flex flex-row items-center justify-between w-full max-w-lg">
+          {children}
+        </div>
       </div>
     </div>
+  )
+}
+
+function Draggable() {
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      style={{ "app-region": "drag" } as any}
+    >
+      <GripVertical />
+    </Button >
   )
 }
 

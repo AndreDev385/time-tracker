@@ -17,7 +17,7 @@ export function ActiveOtherTask({
           size="icon"
           disabled={loading}
           className="rounded-lg bg-green-500 hover:bg-green-400/90"
-          onMouseDown={() => handleCompleteTask(otherTask.id)}
+          onMouseDown={() => handleCompleteTask(otherTask.id, true)}
         >
           {loading ? <Loader2 className="animate-spin" /> : <CheckCircleIcon className="size-6" />}
         </Button>
@@ -29,5 +29,5 @@ export function ActiveOtherTask({
 type Props = {
   otherTask: OtherTask,
   loading: boolean,
-  handleCompleteTask: (taskId: Task['id']) => void
+  handleCompleteTask: (taskId: Task['id'], isOtherThask: boolean) => void
 }

@@ -14,7 +14,7 @@ import { isTask } from "../lib/check-task-type"
 export function TasksPage() {
   const navigate = useNavigate()
 
-  const [loading, setLoading] = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
   const [createTaskInfo, setCreateTaskInfo] = React.useState<CreateTaskInfo>()
 
   const [collisionModal, setCollisionModal] = React.useState({
@@ -88,9 +88,10 @@ export function TasksPage() {
         return;
       }
       setCreateTaskInfo(data)
+      setUser(LocalStorage().getItem("user") as JWTTokenData)
+      setLoading(false)
     }
     loadCreateTaskInfo()
-    setUser(LocalStorage().getItem("user") as JWTTokenData)
   }, [])
 
   function handleSubmitTask(createTaskFormData: CreateTaskFormData, confirmation: boolean = false) {
