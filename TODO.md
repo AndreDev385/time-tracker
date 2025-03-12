@@ -1,17 +1,10 @@
 # TODO
-- [x] The app can't be closed if there's a journey in progress
-
-- [x] get actual task in toolbar window
-- [x] Open main window when update curr task in toolbar window
-- [x] List current day completed task & other tasks
-- [x] Check toolbar and main window sync
-- [ ] handle correctly close main and toolbar window | Meet with lucas to config defaults
-  - [ ] If there's a journey in progress main windows hide
-
-
 - [ ] Take screenshots of the main screen
   - [x] Test it 
-  - [ ] `Backblaze` upload
+  - [x] `Backblaze` upload
   - [ ] configure ipc to capture the screenshot every x time
 
-- [ ] Improve re renderings in the app
+- [x] Add dragable point in toolbar window 
+
+- [x] Learn about app quit events and window close events in windows
+Maybe creating a variable that track if there's a journey active will help whether to quit the app or just hide the windows 

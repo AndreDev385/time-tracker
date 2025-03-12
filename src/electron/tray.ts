@@ -2,12 +2,10 @@ import { BrowserWindow, Menu, Tray, app } from 'electron';
 import { getAssetPath } from './lib/path-resolver.js';
 import path from 'path';
 
-export function createTray(mainWindow: BrowserWindow) {
+export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWindow) {
 	const tray = new Tray(
 		path.join(
-			getAssetPath(),
-			//process.platform === 'darwin' ? 'trayIconTemplate.png' : 'trayIcon.png'
-			'reloj.png'
+			getAssetPath(), 'reloj.png'
 		)
 	);
 
@@ -23,8 +21,19 @@ export function createTray(mainWindow: BrowserWindow) {
 				},
 			},
 			{
+				label: 'Toolbar',
+				click: () => {
+					toolbarWindow.show();
+				},
+			},
+			{
 				label: 'Salir',
-				click: () => app.quit(),
+				click: () => {
+					if (app.dock) {
+						app.dock.hide()
+					}
+					app.quit()
+				},
 			},
 		])
 	);

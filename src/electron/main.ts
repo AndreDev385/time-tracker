@@ -20,6 +20,7 @@ import { getCurrTask } from './server/tasks/get-curr-task.js'
 import { todayCompletedTasks } from './server/tasks/today-completed-tasks.js'
 import { captureScreens } from './lib/capture-screens.js'
 import { testCredentials, uploadFile } from './lib/upload-captures.js'
+import { createWindow, hideWindow, showWindow } from './window-handlers.js'
 
 app.on("ready", function() {
 	const mainWindow = createWindow(
@@ -35,7 +36,7 @@ app.on("ready", function() {
 	const toolbarWindow: BrowserWindow = createWindow(
 		isDev() ? 'http://localhost:5123/toolbar.html' : getToolbarUIPath(),
 		{
-			width: 450,
+			width: 500,
 			height: 60,
 			titleBarStyle: "hidden",
 			frame: false,
@@ -45,7 +46,14 @@ app.on("ready", function() {
 			}
 		}, false)
 
-	// handle submit form
+	let appCanBeClose = true
+	async function checkJourney() {
+		const result = await getActualJourney()
+		appCanBeClose = !result.success
+	}
+	checkJourney()
+	console.log({ appCanBeClose })
+
 	ipcMainOn("signInSubmit", async (data: SignInFormData) => {
 		const result = await signIn(data);
 		if (result.success) {
@@ -61,64 +69,73 @@ app.on("ready", function() {
 
 	ipcMainOn("startJourney", async () => {
 		const result = await startJourney()
+		if (result.success) {
+			appCanBeClose = false
+		}
 		ipcWebContentsSend("startJourneyResult", mainWindow.webContents, result)
 	})
 
 	ipcMainOn("endJourney", async (journeyId: number) => {
 		const result = await endJourney(journeyId)
+		if (result.success) {
+			appCanBeClose = true
+			hideWindow(toolbarWindow, app)
+		}
 		ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
 	})
 
 	ipcMainOn("checkTaskCollision", async (data) => {
 		const result = await checkTaskCollision(data)
-		console.log("check collision result", { result })
 		if (!result.success) {
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			return
 		}
 		if (!result.collision) {
+			// Create the task directly
 			const result = await createTask(data);
-			console.log("main createTaskSubmit", { result })
+			hideWindow(mainWindow, app)
+			showWindow(toolbarWindow)
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
-			showWindow(toolbarWindow)
-			hideWindow(mainWindow, app)
 			return
 		}
+		// There's a collision ask if wants to continue
 		ipcWebContentsSend("checkTaskCollisionResult", mainWindow.webContents, result)
 	})
 
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
-		console.log("main createTaskSubmit", { result })
+		if (result.success) {
+			hideWindow(mainWindow, app)
+			showWindow(toolbarWindow)
+		}
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
-		hideWindow(mainWindow, app)
-		showWindow(toolbarWindow)
 	})
 
 	ipcMainOn("createOtherTaskSubmit", async (data) => {
 		const result = await createOtherTask(data)
-		console.log("main createOtherTaskSubmit", { result })
+		if (result.success) {
+			hideWindow(mainWindow, app)
+			showWindow(toolbarWindow)
+		}
 		ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result.success ? { success: true, task: result.otherTask } : result)
-		hideWindow(mainWindow, app)
-		showWindow(toolbarWindow)
 	})
 
 	ipcMainOn("pauseTask", async (data) => {
 		const result = await pauseTaskInterval(data.taskId)
+		showWindow(mainWindow)
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
-		showWindow(mainWindow)
 	})
 
 	ipcMainOn("resumeTask", async (data) => {
 		const result = await resumeTask(data.taskId)
+		hideWindow(mainWindow, app)
+		showWindow(toolbarWindow)
 		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
-		showWindow(toolbarWindow)
-		hideWindow(mainWindow, app)
 	})
 
 	ipcMainOn("completeTask", async (data) => {
@@ -135,7 +152,6 @@ app.on("ready", function() {
 	})
 
 	ipcMainOn("cancelTask", async (data) => {
-		console.log("cancel task", { data })
 		const result = await cancelTask(data.taskId)
 		ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
@@ -158,81 +174,45 @@ app.on("ready", function() {
 		ipcWebContentsSend("screenShotResult", mainWindow.webContents, result)
 	})
 
-	createTray(mainWindow)
+	createTray(mainWindow, toolbarWindow)
 
-	app.on('before-quit', async () => {
+
+	app.on('before-quit', () => {
 		console.log("app before quit")
 		console.log("end app before quit")
 	});
 
+	app.on("window-all-closed", () => {
+		console.log("window all closed")
+		console.log("window all closed end")
+	})
+
+	app.on("quit", () => {
+		console.log("quit")
+		console.log("quit end")
+	})
+
+	app.on("will-quit", () => {
+		console.log("will-quit")
+		console.log("will-quit end")
+	})
+
 	// check if there's a journey active
-	mainWindow.on('close', async (e) => {
+	mainWindow.on('close', (e) => {
 		console.log("main window close")
-		e.preventDefault();
-		const result = await getActualJourney()
-		console.log({ result })
-		if (result.success) {
-			console.log({ toolbarWindow })
-			showWindow(toolbarWindow)
-			hideWindow(mainWindow, app)
-		} else {
-			if (mainWindow && !mainWindow.isDestroyed()) {
-				mainWindow.destroy();
-			}
-			app.quit();
+		if (appCanBeClose) {
+			return;
 		}
-		console.log("end main window close")
-	});
-
-	mainWindow.on('show', () => {
-		console.log("main window show")
-		console.log("end main window show")
-	});
-
-	toolbarWindow.on("show", () => {
-		console.log('toolbarWindow show')
+		e.preventDefault()
+		mainWindow.hide()
 	});
 
 	toolbarWindow.on("close", (e) => {
-		console.log('toolbarWindow close')
-		e.preventDefault();
+		if (appCanBeClose) {
+			return
+		}
+		e.preventDefault()
+		toolbarWindow.hide()
 	});
-
 })
 
-function showWindow(window: BrowserWindow) {
-	if (window && !window.isDestroyed()) {
-		window.show();
-	} else {
-		console.log('Toolbar window does not exist or was destroyed');
-	}
-}
-
-function hideWindow(window: BrowserWindow, app: Electron.App) {
-	if (window && !window.isDestroyed()) {
-		window.hide();
-	}
-
-	if (app.dock) {
-		app.dock.hide();
-	}
-}
-
-function createWindow(
-	urlOrFile: string,
-	options: Electron.BrowserWindowConstructorOptions,
-	show: boolean = true
-): BrowserWindow {
-	const win = new BrowserWindow({
-		...options,
-		show,
-	})
-
-	if (isDev()) {
-		win.loadURL(urlOrFile)
-	} else {
-		win.loadFile(urlOrFile)
-	}
-
-	return win
-}
