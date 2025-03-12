@@ -1,5 +1,6 @@
 {
   "appId": "com.example.time-tracker",
+  "productName": "time-tracker",
   "files": [
     "dist-electron",
     "dist-react"
@@ -8,6 +9,7 @@
     "dist-electron/preload.cjs",
     "src/assets/**"
   ],
+  "icon": "appIcon.png",
   "mac": {
     "target": "dmg"
   },
@@ -17,7 +19,6 @@
   },
   "win": {
     "target": [
-      "portable",
       "msi"
     ]
   }

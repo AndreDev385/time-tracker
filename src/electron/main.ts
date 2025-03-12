@@ -176,31 +176,11 @@ app.on("ready", function() {
 
 	createTray(mainWindow, toolbarWindow)
 
-
-	app.on('before-quit', () => {
-		console.log("app before quit")
-		console.log("end app before quit")
-	});
-
-	app.on("window-all-closed", () => {
-		console.log("window all closed")
-		console.log("window all closed end")
-	})
-
-	app.on("quit", () => {
-		console.log("quit")
-		console.log("quit end")
-	})
-
-	app.on("will-quit", () => {
-		console.log("will-quit")
-		console.log("will-quit end")
-	})
-
 	// check if there's a journey active
 	mainWindow.on('close', (e) => {
 		console.log("main window close")
 		if (appCanBeClose) {
+			app.quit()
 			return;
 		}
 		e.preventDefault()
