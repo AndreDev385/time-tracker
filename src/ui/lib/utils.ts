@@ -21,6 +21,18 @@ export function formatDistanceHHMMSS(startDate: Date, endDate: Date): string {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
+export function formatDistanceHHMM(startDate: Date, endDate: Date): string {
+  const diff = Math.abs(differenceInMilliseconds(endDate, startDate));
+  const totalSeconds = Math.floor(diff / 1000);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingSeconds = totalSeconds % 3600;
+  const minutes = Math.floor(remainingSeconds / 60);
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  return `${pad(hours)}:${pad(minutes)}`;
+}
 
 export function displayMessage(
   message: string,

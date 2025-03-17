@@ -4,7 +4,7 @@ import { getMyOtherTasks } from "./get-my-other-tasks.js";
 export async function todayCompletedTasks(): Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse> {
 	const today = new Date()
 	const result = await Promise.all([
-		getMyTasks(['solved'], today),
+		getMyTasks(['solved', 'canceled'], today),
 		getMyOtherTasks(['solved'], today)
 	])
 

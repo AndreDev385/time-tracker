@@ -76,11 +76,11 @@ export function InProgressTask() {
   }, [])
 
   return comment.show ? (
-    <div className="flex flex-col gap-4">
+    <div className="flex gap-4">
       <Input
         value={comment.value}
         onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
-        placeholder="Ingresa un comentario"
+        placeholder="Observaciones"
       />
       <div className="flex justify-end">
         <Button

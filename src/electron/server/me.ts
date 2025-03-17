@@ -1,5 +1,4 @@
 import { net } from 'electron'
-
 import { API_URL } from './config.js'
 import { readToken } from '../lib/jwt.js'
 
@@ -15,10 +14,12 @@ export async function me(): Promise<{ user: JWTTokenData } & SuccessResponse | E
 		})
 
 		const json = await response.json()
+
 		if (!response.ok) {
 			return { success: false, error: "Ha ocurrido un error" }
 		}
-		return { success: response.ok, ...json }
+
+		return { success: true, ...json }
 	} catch (e) {
 		console.log("me", { e })
 		return { success: false, error: "Ha ocurrido un error" }

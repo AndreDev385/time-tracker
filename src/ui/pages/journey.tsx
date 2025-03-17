@@ -63,7 +63,6 @@ export function JourneyLayout() {
 
   React.useEffect(function loadScreenshot() {
     return window.electron.screenShotResult((data) => {
-      console.log({ data })
       setImgs(data)
     })
   }, [])
@@ -75,33 +74,32 @@ export function JourneyLayout() {
         setOtherTasks(data.otherTasks)
       }
     })
-  })
+  }, [])
 
   return (
     <div className="flex items-center justify-center h-screen ">
       {
         journey ? (
-          <div className="flex gap-4 max-w-4xl w-full">
-            <div className="space-y-6 w-2/3">
+          <div className="flex gap-4 max-w-3xl w-full">
+            <div className="w-full space-y-6">
               <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
               <Separator />
               <Outlet />
-            </div>
-            <div className="w-1/3 space-y-2">
-              {/* completed tasks */}
-              <div className="flex flex-col gap-2">
-                {
-                  tasks.map(t => (
-                    <FinishedTask key={t.id} task={t} />
-                  ))
-                }
-              </div>
-              <div className="flex flex-col gap-2">
-                {
-                  otherTasks.map(t => (
-                    <FinishedOtherTask key={t.id} task={t} />
-                  ))
-                }
+              <div className="space-y-2">
+                <div className="flex flex-col gap-2">
+                  {
+                    tasks.map(t => (
+                      <FinishedTask key={t.id} task={t} />
+                    ))
+                  }
+                </div>
+                <div className="flex flex-col gap-2">
+                  {
+                    otherTasks.map(t => (
+                      <FinishedOtherTask key={t.id} task={t} />
+                    ))
+                  }
+                </div>
               </div>
             </div>
           </div>

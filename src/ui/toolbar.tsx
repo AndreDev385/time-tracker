@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { LocalStorage } from './storage'
-import { formatDistanceHHMMSS } from './lib/utils';
-import { GripVertical, Loader2 } from 'lucide-react';
+import { formatDistanceHHMM } from './lib/utils';
+import { ExternalLink, GripVertical, Loader2 } from 'lucide-react';
 import { Button } from './components/shared/button';
 import { ActiveTask } from './components/tasks/active-task';
 import { ActiveOtherTask } from './components/tasks/active-other-task';
@@ -22,8 +22,6 @@ export function Toolbar() {
     show: false,
     value: "",
   })
-
-  console.log(loading, journey, currTask)
 
   React.useEffect(function loadJourney() {
     const interval = setInterval(() => {
@@ -81,6 +79,12 @@ export function Toolbar() {
     setLoading(true)
   }
 
+  function journeyTimer() {
+    return (
+      <p className='text-sm mr-4'>{formatDistanceHHMM(journey?.startAt ?? new Date(), currentTime)}</p>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -92,12 +96,7 @@ export function Toolbar() {
   if (!currTask) {
     return (
       <Wrapper>
-        <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt ?? new Date(), currentTime)}</h2>
-        <Button
-          onMouseDown={() => window.electron.openMainWindow()}
-        >
-          Empieza una tarea
-        </Button>
+        {journeyTimer()}
       </Wrapper>
     )
   }
@@ -110,7 +109,7 @@ export function Toolbar() {
             <Input
               value={comment.value}
               onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
-              placeholder="Comentario"
+              placeholder="Observaciones"
               className='w-full'
             />
             <div className="flex justify-end">
@@ -131,7 +130,7 @@ export function Toolbar() {
     } else {
       return (
         <Wrapper>
-          <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt ?? new Date(), currentTime)}</h2>
+          {journeyTimer()}
           <ActiveTask task={currTask!} loading={loading} setComment={setComment} handlePauseTask={handlePauseTask} />
         </Wrapper>
       )
@@ -141,7 +140,7 @@ export function Toolbar() {
   // Other task
   return (
     <Wrapper>
-      <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt ?? new Date(), currentTime)}</h2>
+      {journeyTimer()}
       <ActiveOtherTask
         otherTask={currTask}
         loading={loading}
@@ -152,28 +151,45 @@ export function Toolbar() {
 }
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center pr-2">
-      <div className='w-full flex'>
-        <Draggable />
-        <div className="flex flex-row items-center justify-between w-full max-w-lg">
-          {children}
-        </div>
+  function OpenMainWindow() {
+    return (
+      <div className='flex items-center'>
+        <Button
+          type='button'
+          variant="ghost"
+          size="icon"
+          onMouseDown={() => window.electron.openMainWindow()}
+        >
+          <ExternalLink />
+        </Button>
       </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-between pr-2">
+      <Draggable />
+      <div className="flex items-center justify-between w-full overflow-x-hidden">
+        {children}
+      </div>
+      <OpenMainWindow />
     </div>
   )
 }
 
 function Draggable() {
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      style={{ "app-region": "drag" } as any}
-    >
-      <GripVertical />
-    </Button >
+    <div className='flex items-center'>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="size-7 hover:bg-primary/10"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        style={{ "app-region": "drag" } as any}
+      >
+        <GripVertical className='size-5' />
+      </Button >
+    </div>
   )
 }
 

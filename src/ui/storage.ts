@@ -3,6 +3,7 @@ type Storage = {
   user: JWTTokenData | null
   journey: { startAt: Journey['startAt'], id: Journey['id'] } | null
   currTask: Task | OtherTask | null
+  createTaskInfo: CreateTaskInfo | null
 }
 
 function getItem<Key extends keyof Storage>(key: Key): Storage[Key] {

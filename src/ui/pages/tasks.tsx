@@ -36,6 +36,7 @@ export function TasksPage() {
     selectedBusiness: null,
     selectedTaskType: null,
     selectedRecordType: null,
+    selectedWorkType: null,
   }), [ONE_ASSIGNED_PROJECT])
 
   const [formState, setFormState] = React.useState(INITIAL_FORM_STATE)
@@ -87,6 +88,7 @@ export function TasksPage() {
         displayMessage(data.error, "error")
         return;
       }
+      LocalStorage().setItem("createTaskInfo", data)
       setCreateTaskInfo(data)
       setUser(LocalStorage().getItem("user") as JWTTokenData)
       setLoading(false)
@@ -175,6 +177,7 @@ export function TasksPage() {
           />
         ) : (
           <StepsTaskForm
+            oneAssignedProject={ONE_ASSIGNED_PROJECT}
             showOtherTaskForm={() => setOtherTaskForm(prev => ({ ...prev, show: true }))}
             formState={formState}
             onFormStateChange={onFormStateChange}
@@ -211,6 +214,7 @@ export type FormState = {
   selectedBusiness: Business['id'] | null
   selectedTaskType: TaskType['id'] | null
   selectedRecordType: RecordType['id'] | null
+  selectedWorkType: WorkType['id'] | null
 }
 
 export type OtherTaskFormState = {

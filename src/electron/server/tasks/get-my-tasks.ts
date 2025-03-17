@@ -10,7 +10,7 @@ export async function getMyTasks(statuses: TaskStatus[], startAt?: Date): Promis
 
 		const url = new URL(`${API_URL}/tasks`)
 		for (const s of statuses) {
-			url.searchParams.set("status", s)
+			url.searchParams.append("status", s)
 		}
 
 		if (startAt) {

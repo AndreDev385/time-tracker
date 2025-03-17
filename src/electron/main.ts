@@ -36,8 +36,8 @@ app.on("ready", function() {
 	const toolbarWindow: BrowserWindow = createWindow(
 		isDev() ? 'http://localhost:5123/toolbar.html' : getToolbarUIPath(),
 		{
-			width: 500,
-			height: 60,
+			width: 700,
+			height: 40,
 			titleBarStyle: "hidden",
 			frame: false,
 			webPreferences: {
@@ -125,7 +125,6 @@ app.on("ready", function() {
 
 	ipcMainOn("pauseTask", async (data) => {
 		const result = await pauseTaskInterval(data.taskId)
-		showWindow(mainWindow)
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 	})
@@ -148,14 +147,12 @@ app.on("ready", function() {
 			ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 		}
-		showWindow(mainWindow)
 	})
 
 	ipcMainOn("cancelTask", async (data) => {
 		const result = await cancelTask(data.taskId)
 		ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
-		showWindow(mainWindow)
 	})
 
 	ipcMainHandle('getToolbarTask', () => getCurrTask())

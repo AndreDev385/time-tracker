@@ -24,6 +24,7 @@ type CreateTaskFormData = {
   businessId: number;
   taskTypeId: number;
   recordTypeId: number;
+  workTypeId: number;
   recordId: string;
 }
 
@@ -46,12 +47,14 @@ type Project = { id: number, name: string }
 type Business = { id: number, name: string }
 type TaskType = { id: number, name: string }
 type RecordType = { id: number, name: string }
+type WorkType = { id: number, name: string, taskTypes: number[] }
 type OtherTaskOption = { id: number, value: string }
 
 type CreateTaskInfo = {
   projects: Project[]
   business: Business[]
   taskTypes: TaskType[]
+  workTypes: WorkType[]
   recordTypes: RecordType[]
   otherTaskOptions: OtherTaskOption[]
 }
@@ -70,6 +73,7 @@ type Task = {
   businessId: number
   taskTypeId: number
   recordTypeId: number
+  workTypeId: number
   recordId: number
   intervals: Interval[]
   comment: string

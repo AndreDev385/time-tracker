@@ -4,9 +4,27 @@
   - [x] `Backblaze` upload
   - [ ] configure ipc to capture the screenshot every x time
 
-- [x] Add dragable point in toolbar window
+- [ ] Journey, add total by date
+- [ ] Pending and completed task change info
+  - work type 
+  - task type
+  - business
+  - record type
+- [x] Change "comentario" to "observaciones" in comment input
 
-- [ ] Remove the tray when the app it's close
+- [ ] Add work type to create task form
 
-- [x] Learn about app quit events and window close events in windows
-Maybe creating a variable that track if there's a journey active will help whether to quit the app or just hide the windows 
+If assigned projects change there's no way to update this user data, 
+load user data and update local storage in journey page
+
+## Refactoring toolbar
+- [x] Remove open main window default behavior
+  - When completing
+  - When paused
+  - When cancel
+- [ ] Add start task or other task form
+- [x] Open main window button -> Small icon
+- [x] Change update task buttons to icons and change order
+- [ ] Check if can be drag when it's over the task bar on windows
+- [x] Smaller font size to 12px
+- [x] Remove seconds from journey time

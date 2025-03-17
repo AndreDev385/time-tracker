@@ -1,4 +1,4 @@
-import { CheckCircleIcon, Loader2 } from "lucide-react"
+import { Check, Loader2 } from "lucide-react"
 import { Button } from "../shared/button"
 
 export function ActiveOtherTask({
@@ -7,9 +7,9 @@ export function ActiveOtherTask({
   handleCompleteTask,
 }: Props) {
   return (
-    <div className="flex justify-between gap-4 items-center">
+    <div className="flex justify-between gap-4 items-center w-full">
       <div>
-        <h1>{otherTask.comment}</h1>
+        <p className="text-sm">{otherTask.comment}</p>
       </div>
       <div className="flex gap-2">
         <Button
@@ -19,7 +19,7 @@ export function ActiveOtherTask({
           className="rounded-lg bg-green-500 hover:bg-green-400/90"
           onMouseDown={() => handleCompleteTask(otherTask.id, true)}
         >
-          {loading ? <Loader2 className="animate-spin" /> : <CheckCircleIcon className="size-6" />}
+          {loading ? <Loader2 className="animate-spin" /> : <Check className="size-6 text-green-500" />}
         </Button>
       </div>
     </div>
