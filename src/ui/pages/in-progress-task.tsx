@@ -7,6 +7,7 @@ import { ActiveTask } from "../components/tasks/active-task"
 import { ROUTES } from "../main"
 import { LocalStorage } from "../storage"
 import { Input } from "../components/shared/input"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 export function InProgressTask() {
   const navigate = useNavigate()
@@ -82,7 +83,19 @@ export function InProgressTask() {
         onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
         placeholder="Observaciones"
       />
-      <div className="flex justify-end">
+      <div className="flex gap-2 justify-end">
+        <Button
+          variant="destructive"
+          onMouseDown={() => {
+            setComment({
+              action: "",
+              show: false,
+              value: "",
+            })
+          }}
+        >
+          <ArrowLeft />
+        </Button>
         <Button
           onMouseDown={() => {
             if (comment.action === "solved") {
@@ -92,7 +105,9 @@ export function InProgressTask() {
               handleCancelTask(task.id, comment.value)
             }
           }}
-        >Guardar</Button>
+        >
+          <ArrowRight />
+        </Button>
       </div>
     </div>
   ) : (

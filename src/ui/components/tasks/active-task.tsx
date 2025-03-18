@@ -17,8 +17,6 @@ export function ActiveTask({
     info?.workTypes.find(wt => wt.id === task.workTypeId)?.name,
     info?.taskTypes.find(wt => wt.id === task.taskTypeId)?.name,
     info?.recordTypes.find(wt => wt.id === task.recordTypeId)?.name,
-    info?.business.find(wt => wt.id === task.businessId)?.name,
-    info?.projects.find(wt => wt.id === task.projectId)?.name
   ]
 
   return (

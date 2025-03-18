@@ -111,7 +111,7 @@ interface Window {
 
     checkTaskCollision: (data: CreateTaskFormData) => void;
     checkTaskCollisionResult: (
-      callback: (data: { collision: boolean } & SuccessResponse) => void
+      callback: (data: { collision: boolean, creationData: CreateTaskFormData } & SuccessResponse) => void
     ) => void,
 
     createTaskSubmit: (data: CreateTaskFormData) => void
@@ -174,7 +174,7 @@ type EventPayloadMapping = {
   getCreateTaskInfo: Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
   checkTaskCollision: CreateTaskFormData
-  checkTaskCollisionResult: { collision: boolean } & SuccessResponse
+  checkTaskCollisionResult: { collision: boolean, creationData: CreateTaskFormData } & SuccessResponse
 
   createTaskSubmit: CreateTaskFormData
   createTaskResult: { task: Task } & SuccessResponse | ErrorResponse

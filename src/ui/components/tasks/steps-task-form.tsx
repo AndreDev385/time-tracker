@@ -1,21 +1,19 @@
 import React from "react"
 import { Button } from "../shared/button";
 import { Input } from "../shared/input";
-import { FormState } from "../../pages/tasks";
 import { ArrowLeft } from "lucide-react";
-import { CollisionModal } from "./collision-modal";
 import { Step } from "./step";
+import { FormState } from "./form";
 
 export function StepsTaskForm({
   formState,
   onFormStateChange,
   handleSubmitTask,
-  collisionModal,
-  setCollisionModal,
   user,
   createTaskInfo,
   showOtherTaskForm,
-  oneAssignedProject
+  oneAssignedProject,
+  inToolbar,
 }: Props) {
   const [recordIdError, setRecordIdError] = React.useState("")
   const [selectedValues, setSelectedValues] = React.useState<string[]>([]);
@@ -103,28 +101,32 @@ export function StepsTaskForm({
 
   function renderStep(step: number) {
     if (step === 1) {
-      return (<div className="flex justify-between w-full items-center gap-4">
+      return (
         <div className="flex justify-between w-full items-center gap-4">
-          <Step {...steps[step]} />
-        </div>
-        <div className="w-36">
-          <p
-            className="hover:underline hover:cursor-pointer font-bold text-end"
-            onMouseDown={() => showOtherTaskForm()}
-          >
-            Otras tareas
-          </p>
-        </div>
-        <div>
-          {!oneAssignedProject ? (
-            <StepBackButton />
+          <div className="flex justify-between w-full items-center gap-4">
+            <Step {...steps[step]} />
+          </div>
+          {inToolbar ? (
+            <div className="w-36">
+              <p
+                className="hover:underline hover:cursor-pointer font-bold text-end"
+                onMouseDown={() => showOtherTaskForm()}
+              >
+                Otras tareas
+              </p>
+            </div>
           ) : null}
+          <div>
+            {!oneAssignedProject ? (
+              <StepBackButton />
+            ) : null}
+          </div>
         </div>
-      </div>)
+      )
     }
     if (step === 2) {
       return (
-        <div className="flex gap-4">
+        <div className="flex w-full gap-4">
           <div>
             <Input
               value={formState.recordId}
@@ -159,27 +161,15 @@ export function StepsTaskForm({
 
   return (
     <>
-      {/* collision modal */}
-      <CollisionModal state={collisionModal} setState={setCollisionModal} submit={() =>
-        handleSubmitTask({
-          userId: user.id,
-          projectId: Number(formState.selectedProject),
-          taskTypeId: Number(formState.selectedTaskType),
-          businessId: Number(formState.selectedBusiness),
-          recordTypeId: Number(formState.selectedRecordType),
-          workTypeId: Number(formState.selectedWorkType),
-          recordId: formState.recordId,
-        }, true)
-      } />
-      <div className="flex flex-col gap-2 border border-gray-300 rounded-lg p-4">
-        {/* PROJECT step 0 */}
+      {/* PROJECT step 0 */}
+      {inToolbar ? (
         <div className="flex gap-4">
           {selectedValues.map(v => (
             <p key={v} className="text-sm font-bold text-blue-500">{v}</p>
           ))}
         </div>
-        {renderStep(formState.step)}
-      </div>
+      ) : null}
+      {renderStep(formState.step)}
     </>
   )
 }
@@ -188,11 +178,10 @@ type Props = {
   formState: FormState
   onFormStateChange: (name: keyof FormState, value: FormState[keyof FormState]) => void
   handleSubmitTask: (createTaskFormData: CreateTaskFormData, confirmation?: boolean) => void
-  collisionModal: { open: boolean }
-  setCollisionModal: React.Dispatch<React.SetStateAction<{ open: boolean }>>
   user: JWTTokenData
   createTaskInfo: CreateTaskInfo
   showOtherTaskForm: () => void
   oneAssignedProject: boolean;
+  inToolbar: boolean;
 }
 

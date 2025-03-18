@@ -40,6 +40,6 @@ export function CollisionModal({
 
 type Props = {
   state: { open: boolean }
-  setState: React.Dispatch<React.SetStateAction<{ open: boolean }>>
+  setState: (value: { open: boolean }) => void
   submit: () => void
 }

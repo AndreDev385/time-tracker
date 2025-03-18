@@ -1,12 +1,15 @@
-import React, { ReactNode } from 'react'
-import { LocalStorage } from './storage'
-import { formatDistanceHHMM } from './lib/utils';
-import { ExternalLink, GripVertical, Loader2 } from 'lucide-react';
-import { Button } from './components/shared/button';
-import { ActiveTask } from './components/tasks/active-task';
-import { ActiveOtherTask } from './components/tasks/active-other-task';
-import { isTask } from './lib/check-task-type';
-import { Input } from './components/shared/input';
+import React, { ChangeEvent, ReactNode } from 'react'
+import { LocalStorage } from '../storage'
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Button } from '../components/shared/button';
+import { ActiveTask } from '../components/tasks/active-task';
+import { ActiveOtherTask } from '../components/tasks/active-other-task';
+import { isTask } from '../lib/check-task-type';
+import { Input } from '../components/shared/input';
+import { Draggable } from './draggable';
+import { SmallJourneyTimer } from './small-journey-timer';
+import { TasksForm } from '../components/tasks/form';
+import { OpenMainWindow } from './open-main-window-button';
 
 export function Toolbar() {
   const [journey, setJourney] = React.useState<{
@@ -14,7 +17,6 @@ export function Toolbar() {
     id: Journey["id"];
   }>()
   const [currTask, setCurrTask] = React.useState<Task | OtherTask | null>()
-  const [currentTime, setCurrentTime] = React.useState(new Date())
   const [loading, setLoading] = React.useState(false)
 
   const [comment, setComment] = React.useState<{ action: "" | "solved" | "canceled", show: boolean, value: string }>({
@@ -35,17 +37,9 @@ export function Toolbar() {
     return () => clearInterval(interval); // Cleanup on unmount
   }, [])
 
-  React.useEffect(function timer() {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, []);
 
   React.useEffect(function loadCurrTask() {
     return window.electron.reloadToolbarData((data) => {
-      console.log("reload toolbar data", data)
       if (data.success) {
         //reset
         setComment({
@@ -54,8 +48,13 @@ export function Toolbar() {
           value: "",
         })
         setCurrTask(data.task ?? null)
+        if (data.task) {
+          LocalStorage().setItem("currTask", data.task)
+        } else {
+          LocalStorage().removeItem("currTask")
+        }
       } else {
-        //error
+        // TODO: handle error
       }
       setLoading(false)
     })
@@ -63,29 +62,20 @@ export function Toolbar() {
 
   function handleCompleteTask(taskId: Task['id'], isOtherTask: boolean = false, comment?: string) {
     window.electron.completeTask({ taskId, comment, isOtherTask })
-    window.electron.openMainWindow()
     setLoading(true)
   }
 
   function handleCancelTask(taskId: Task['id'], comment: string) {
     window.electron.cancelTask({ taskId, comment })
-    window.electron.openMainWindow()
     setLoading(true)
   }
 
   function handlePauseTask(taskId: Task['id']) {
     window.electron.pauseTask({ taskId })
-    window.electron.openMainWindow()
     setLoading(true)
   }
 
-  function journeyTimer() {
-    return (
-      <p className='text-sm mr-4'>{formatDistanceHHMM(journey?.startAt ?? new Date(), currentTime)}</p>
-    )
-  }
-
-  if (loading) {
+  if (loading || !journey) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className='animate-spin size-10' />
@@ -95,8 +85,8 @@ export function Toolbar() {
 
   if (!currTask) {
     return (
-      <Wrapper>
-        {journeyTimer()}
+      <Wrapper journey={journey}>
+        <TasksForm inToolbar={false} />
       </Wrapper>
     )
   }
@@ -104,15 +94,27 @@ export function Toolbar() {
   if (isTask(currTask)) {
     if (comment.show) {
       return (
-        <Wrapper>
+        <Wrapper journey={journey}>
           <div className="flex w-full gap-4">
             <Input
               value={comment.value}
-              onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setComment(prev => ({ ...prev, value: e.target.value }))}
               placeholder="Observaciones"
               className='w-full'
             />
-            <div className="flex justify-end">
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="destructive"
+                onMouseDown={() => {
+                  setComment({
+                    action: "",
+                    show: false,
+                    value: "",
+                  })
+                }}
+              >
+                <ArrowLeft />
+              </Button>
               <Button
                 onMouseDown={() => {
                   if (comment.action === "solved") {
@@ -122,15 +124,16 @@ export function Toolbar() {
                     handleCancelTask(currTask.id, comment.value)
                   }
                 }}
-              >Guardar</Button>
+              >
+                <ArrowRight />
+              </Button>
             </div>
           </div>
         </Wrapper>
       )
     } else {
       return (
-        <Wrapper>
-          {journeyTimer()}
+        <Wrapper journey={journey}>
           <ActiveTask task={currTask!} loading={loading} setComment={setComment} handlePauseTask={handlePauseTask} />
         </Wrapper>
       )
@@ -139,8 +142,7 @@ export function Toolbar() {
 
   // Other task
   return (
-    <Wrapper>
-      {journeyTimer()}
+    <Wrapper journey={journey}>
       <ActiveOtherTask
         otherTask={currTask}
         loading={loading}
@@ -150,45 +152,20 @@ export function Toolbar() {
   )
 }
 
-function Wrapper({ children }: { children: ReactNode }) {
-  function OpenMainWindow() {
-    return (
-      <div className='flex items-center'>
-        <Button
-          type='button'
-          variant="ghost"
-          size="icon"
-          onMouseDown={() => window.electron.openMainWindow()}
-        >
-          <ExternalLink />
-        </Button>
-      </div>
-    )
+function Wrapper({ children, journey }: {
+  children: ReactNode, journey: {
+    startAt: Journey["startAt"];
+    id: Journey["id"];
   }
-
+}) {
   return (
     <div className="min-h-screen flex items-center justify-between pr-2">
       <Draggable />
+      <SmallJourneyTimer journey={journey} />
       <div className="flex items-center justify-between w-full overflow-x-hidden">
         {children}
       </div>
       <OpenMainWindow />
-    </div>
-  )
-}
-
-function Draggable() {
-  return (
-    <div className='flex items-center'>
-      <Button
-        size="icon"
-        variant="ghost"
-        className="size-7 hover:bg-primary/10"
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        style={{ "app-region": "drag" } as any}
-      >
-        <GripVertical className='size-5' />
-      </Button >
     </div>
   )
 }

@@ -40,6 +40,7 @@ app.on("ready", function() {
 			height: 40,
 			titleBarStyle: "hidden",
 			frame: false,
+			skipTaskbar: true,
 			webPreferences: {
 				contextIsolation: true,
 				preload: getPreloadPath()
@@ -52,7 +53,6 @@ app.on("ready", function() {
 		appCanBeClose = !result.success
 	}
 	checkJourney()
-	console.log({ appCanBeClose })
 
 	ipcMainOn("signInSubmit", async (data: SignInFormData) => {
 		const result = await signIn(data);
@@ -100,7 +100,9 @@ app.on("ready", function() {
 			return
 		}
 		// There's a collision ask if wants to continue
-		ipcWebContentsSend("checkTaskCollisionResult", mainWindow.webContents, result)
+		showWindow(mainWindow)
+		mainWindow.focus()
+		ipcWebContentsSend("checkTaskCollisionResult", mainWindow.webContents, { ...result, creationData: data })
 	})
 
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
@@ -175,7 +177,6 @@ app.on("ready", function() {
 
 	// check if there's a journey active
 	mainWindow.on('close', (e) => {
-		console.log("main window close")
 		if (appCanBeClose) {
 			app.quit()
 			return;

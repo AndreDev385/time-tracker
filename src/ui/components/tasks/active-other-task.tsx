@@ -13,10 +13,10 @@ export function ActiveOtherTask({
       </div>
       <div className="flex gap-2">
         <Button
-          variant="default"
+          variant="ghost"
           size="icon"
           disabled={loading}
-          className="rounded-lg bg-green-500 hover:bg-green-400/90"
+          className="rounded-lg hover:bg-green-500/10"
           onMouseDown={() => handleCompleteTask(otherTask.id, true)}
         >
           {loading ? <Loader2 className="animate-spin" /> : <Check className="size-6 text-green-500" />}
