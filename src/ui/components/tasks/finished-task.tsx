@@ -11,7 +11,7 @@ export function FinishedTask({ task }: Props) {
     info?.recordTypes.find(wt => wt.id === task.recordTypeId)?.name,
     info?.business.find(wt => wt.id === task.businessId)?.name,
     info?.projects.find(wt => wt.id === task.projectId)?.name
-  ]
+  ].filter(v => v)
 
   return (
     <div className="flex justify-between p-4 border border-gray-300 rounded-lg">

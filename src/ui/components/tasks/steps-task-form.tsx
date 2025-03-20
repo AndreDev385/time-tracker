@@ -59,25 +59,40 @@ export function StepsTaskForm({
       message: "No hay empresas registradas",
       options: createTaskInfo.business,
       setSelected: (id: number) => {
-        setSelectedValues([...selectedValues, createTaskInfo.business.find(t => t.id === id)!.name as string])
+        const workType = createTaskInfo.workTypes.find(wt => formState.selectedWorkType === wt.id)
+        if (workType?.recordTypes.length === 0) {
+          handleSubmitTask({
+            userId: user.id,
+            projectId: Number(formState.selectedProject),
+            workTypeId: Number(formState.selectedWorkType),
+            recordId: formState.recordId,
+            taskTypeId: Number(formState.selectedTaskType),
+            businessId: Number(id),
+          })
+          return
+        }
         onFormStateChange("selectedBusiness", id)
+        setSelectedValues([...selectedValues, createTaskInfo.business.find(t => t.id === id)!.name as string])
         onFormStateChange("step", 4)
       }
     },
     {
       message: "No hay tipos de expedientes registrados",
-      options: createTaskInfo.recordTypes,
+      options: createTaskInfo.recordTypes.filter(function workTypeOptions(rt) {
+        const workType = createTaskInfo.workTypes.find(wt => formState.selectedWorkType === wt.id)
+        return workType?.recordTypes.includes(rt.id)
+      }),
       setSelected: (id: number) => {
         setSelectedValues([...selectedValues, createTaskInfo.recordTypes.find(t => t.id === id)!.name as string])
         onFormStateChange("selectedRecordType", id)
         handleSubmitTask({
           userId: user.id,
           projectId: Number(formState.selectedProject),
+          workTypeId: Number(formState.selectedWorkType),
+          recordId: formState.recordId,
           taskTypeId: Number(formState.selectedTaskType),
           businessId: Number(formState.selectedBusiness),
-          workTypeId: Number(formState.selectedWorkType),
           recordTypeId: Number(id),
-          recordId: formState.recordId,
         })
       }
     },

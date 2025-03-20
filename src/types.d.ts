@@ -23,7 +23,7 @@ type CreateTaskFormData = {
   projectId: number;
   businessId: number;
   taskTypeId: number;
-  recordTypeId: number;
+  recordTypeId?: number;
   workTypeId: number;
   recordId: string;
 }
@@ -47,7 +47,7 @@ type Project = { id: number, name: string }
 type Business = { id: number, name: string }
 type TaskType = { id: number, name: string }
 type RecordType = { id: number, name: string }
-type WorkType = { id: number, name: string, taskTypes: number[] }
+type WorkType = { id: number, name: string, taskTypes: number[], recordTypes: number[] }
 type OtherTaskOption = { id: number, value: string }
 
 type CreateTaskInfo = {

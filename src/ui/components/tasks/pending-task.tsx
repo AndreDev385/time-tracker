@@ -17,7 +17,7 @@ export function PendingTask({
     info?.recordTypes.find(wt => wt.id === task.recordTypeId)?.name,
     info?.business.find(wt => wt.id === task.businessId)?.name,
     info?.projects.find(wt => wt.id === task.projectId)?.name
-  ]
+  ].filter((v) => v)
 
   return (
     <div className="w-full flex justify-between py-2 px-4 border-b border-gray-300 items-center">

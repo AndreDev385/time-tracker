@@ -17,7 +17,7 @@ export function ActiveTask({
     info?.workTypes.find(wt => wt.id === task.workTypeId)?.name,
     info?.taskTypes.find(wt => wt.id === task.taskTypeId)?.name,
     info?.recordTypes.find(wt => wt.id === task.recordTypeId)?.name,
-  ]
+  ].filter(v => v)
 
   return (
     <div className="flex justify-between gap-4 items-center w-full">
