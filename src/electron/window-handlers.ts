@@ -1,16 +1,20 @@
 import { BrowserWindow } from "electron";
 import { isDev } from "./lib/utils.js";
 
-export function showWindow(window: BrowserWindow) {
-	if (window && !window.isDestroyed()) {
+export function showWindow(window: BrowserWindow, app: Electron.App) {
+	if (window && !window.isDestroyed() && !window.isVisible()) {
 		window.show();
 	} else {
 		console.log('Toolbar window does not exist or was destroyed');
 	}
+
+	if (app.dock) {
+		app.dock.show();
+	}
 }
 
 export function hideWindow(window: BrowserWindow, app: Electron.App) {
-	if (window && !window.isDestroyed()) {
+	if (window && !window.isDestroyed() && window.isVisible()) {
 		window.hide();
 	}
 

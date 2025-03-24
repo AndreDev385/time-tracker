@@ -4,7 +4,7 @@ import { API_URL } from "../config.js";
 
 //TODO: Update to add date range
 
-export async function getMyTasks(statuses: TaskStatus[], startAt?: Date): Promise<{ tasks: Task[] } & SuccessResponse | ErrorResponse> {
+export async function getMyTasks(statuses: TaskStatus[], endAt?: Date): Promise<{ tasks: Task[] } & SuccessResponse | ErrorResponse> {
 	try {
 		const token = readToken()?.token ?? ''
 
@@ -13,8 +13,8 @@ export async function getMyTasks(statuses: TaskStatus[], startAt?: Date): Promis
 			url.searchParams.append("status", s)
 		}
 
-		if (startAt) {
-			url.searchParams.set("startAt", startAt.toDateString())
+		if (endAt) {
+			url.searchParams.set("endAt", endAt.toDateString())
 		}
 
 		const response = await net.fetch(url.toString(), {

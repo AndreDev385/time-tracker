@@ -100,6 +100,7 @@ interface Window {
     checkToken: () => Promise<({ user: JWTTokenData } & SuccessResponse) | ErrorResponse>
     getMyTasks: () => Promise<({ tasks: Task[] } & SuccessResponse) | ErrorResponse>
 
+
     startJourney: () => void
     startJourneyResult: (callback: (data: { journey: Journey } & SuccessResponse | ErrorResponse) => void) => void
     endJourney: (id: number) => void
@@ -153,6 +154,9 @@ interface Window {
     openMainWindow: () => void
 
     getTodaysTasks: () => Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse>
+    reloadTodaysTasks: (
+      callback: (data: { tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse) => void
+    ) => void
   }
 }
 
@@ -201,4 +205,5 @@ type EventPayloadMapping = {
   openMainWindow: void
 
   getTodaysTasks: Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse>
+  reloadTodaysTasks: { tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse
 }

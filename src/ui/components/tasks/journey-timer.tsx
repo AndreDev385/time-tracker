@@ -18,14 +18,14 @@ export function JourneyTimer({ journey, handleStopJourney, }: Props) {
   return (
     <div className="w-full">
       <div className="flex flex-row items-center justify-between p-4 border border-gray-300 rounded-lg shadow-lg w-full">
-        <h2 className="text-lg font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
+        <h2 className="font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
         <Button
-          variant="destructive"
+          variant="ghost"
           size="icon"
           className="rounded-lg"
           onMouseDown={() => handleStopJourney()}
         >
-          <StopIcon className="size-6" />
+          <StopIcon color="red" className="size-6" />
         </Button>
       </div>
     </div>

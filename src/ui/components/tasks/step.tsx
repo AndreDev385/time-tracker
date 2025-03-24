@@ -3,12 +3,12 @@ export function Step({ options, setSelected, message }: StepProps) {
     <div className="flex flex-wrap flex-row gap-2 w-full items-center">
       {
         options.length == 0 ?
-          <span>{message}</span> :
+          <span className="text-sm">{message}</span> :
           options.map(v => (
             <p
               key={v.id}
               onMouseDown={() => setSelected(v.id)}
-              className="hover:underline hover:cursor-pointer font-bold"
+              className="hover:underline hover:cursor-pointer font-bold text-xs"
             >
               {v.name}
             </p>

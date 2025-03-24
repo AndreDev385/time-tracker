@@ -76,8 +76,17 @@ export function JourneyLayout() {
     })
   }, [])
 
+  React.useEffect(function reloadCompletedTask() {
+    return window.electron.reloadTodaysTasks((data) => {
+      if (data.success) {
+        setTasks(data.tasks)
+        setOtherTasks(data.otherTasks)
+      }
+    })
+  }, [])
+
   return (
-    <div className="flex items-center justify-center h-screen ">
+    <div className="flex items-center justify-center h-full p-8">
       {
         journey ? (
           <div className="flex gap-4 max-w-3xl w-full">

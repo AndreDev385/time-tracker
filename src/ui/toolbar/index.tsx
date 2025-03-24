@@ -75,6 +75,15 @@ export function Toolbar() {
     setLoading(true)
   }
 
+  function handleFinish() {
+    if (comment.action === "solved") {
+      handleCompleteTask(currTask!.id, false, comment.value)
+    }
+    if (comment.action === "canceled") {
+      handleCancelTask(currTask!.id, comment.value)
+    }
+  }
+
   if (loading || !journey) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -101,10 +110,12 @@ export function Toolbar() {
               onChange={(e: ChangeEvent<HTMLInputElement>) => setComment(prev => ({ ...prev, value: e.target.value }))}
               placeholder="Observaciones"
               className='w-full'
+              onKeyDown={(e) => e.key === "Enter" ? handleFinish() : null}
             />
             <div className="flex gap-2 justify-end">
               <Button
-                variant="destructive"
+                variant="ghost"
+                size="icon"
                 onMouseDown={() => {
                   setComment({
                     action: "",
@@ -113,19 +124,14 @@ export function Toolbar() {
                   })
                 }}
               >
-                <ArrowLeft />
+                <ArrowLeft color='red' />
               </Button>
               <Button
-                onMouseDown={() => {
-                  if (comment.action === "solved") {
-                    handleCompleteTask(currTask.id, false, comment.value)
-                  }
-                  if (comment.action === "canceled") {
-                    handleCancelTask(currTask.id, comment.value)
-                  }
-                }}
+                variant="ghost"
+                size="icon"
+                onMouseDown={handleFinish}
               >
-                <ArrowRight />
+                <ArrowRight color='blue' />
               </Button>
             </div>
           </div>

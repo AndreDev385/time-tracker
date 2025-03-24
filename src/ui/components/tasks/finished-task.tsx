@@ -1,4 +1,3 @@
-import { Check, X } from "lucide-react";
 import { LocalStorage } from "../../storage";
 
 export function FinishedTask({ task }: Props) {
@@ -14,20 +13,11 @@ export function FinishedTask({ task }: Props) {
   ].filter(v => v)
 
   return (
-    <div className="flex justify-between p-4 border border-gray-300 rounded-lg">
+    <div className="p-4 border border-gray-300 rounded-lg">
       <div className="flex items-center overflow-x-hidden">
         {summary.map(o => (
-          <p key={o} className="text-sm border-r border-gray-500 px-1 last:border-none">{o}</p>
+          <p key={o} className={`${task.status == "solved" ? "text-green-600 border-green-600" : "text-red-600 border-red-600"} text-xs border-r  px-1 last:border-none`}>{o}</p>
         ))}
-      </div>
-      <div>
-        {
-          task.status === "solved" ? (
-            <Check className="text-green-500" />
-          ) : (
-            <X className="text-red-500" />
-          )
-        }
       </div>
     </div>
   )

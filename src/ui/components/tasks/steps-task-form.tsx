@@ -101,7 +101,7 @@ export function StepsTaskForm({
   function StepBackButton() {
     return (
       <Button
-        variant="destructive"
+        variant="ghost"
         size="icon"
         className="rounded-lg"
         onMouseDown={() => {
@@ -109,7 +109,7 @@ export function StepsTaskForm({
           onFormStateChange("step", formState.step - 1)
         }}
       >
-        <ArrowLeft className="size-6" />
+        <ArrowLeft color="red" />
       </Button>
     )
   }
@@ -124,7 +124,7 @@ export function StepsTaskForm({
           {inToolbar ? (
             <div className="w-36">
               <p
-                className="hover:underline hover:cursor-pointer font-bold text-end"
+                className="hover:underline hover:cursor-pointer font-bold text-end text-xs"
                 onMouseDown={() => showOtherTaskForm()}
               >
                 Otras tareas
@@ -142,16 +142,13 @@ export function StepsTaskForm({
     if (step === 2) {
       return (
         <div className="flex w-full gap-4">
-          <div>
-            <Input
-              value={formState.recordId}
-              onChange={(e) => onFormStateChange("recordId", e.target.value)}
-              name="recordId"
-              className="w-44"
-              placeholder="Expediente"
-            />
-            {recordIdError ? <em className="text-red-500">{recordIdError}</em> : null}
-          </div>
+          <Input
+            value={formState.recordId}
+            onChange={(e) => onFormStateChange("recordId", e.target.value)}
+            name="recordId"
+            className={`w-44 ${recordIdError && "border-red-500"}`}
+            placeholder="Expediente"
+          />
           <Step {...steps[step]} />
           <div>
             <StepBackButton />

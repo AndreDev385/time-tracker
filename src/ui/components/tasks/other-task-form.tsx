@@ -59,7 +59,7 @@ export function OtherTaskForm({
         )
       }
       <Button
-        variant="destructive"
+        variant="ghost"
         size="icon"
         onMouseDown={() => {
           if (otherTaskForm.custom) {
@@ -72,22 +72,23 @@ export function OtherTaskForm({
       >
         {
           loading ? (
-            <Loader2 className="animate-spin size-10" />
+            <Loader2 className="animate-spin" />
           ) : (
-            <ArrowLeft className="size-6" />
+            <ArrowLeft color="red" />
           )
         }
       </Button>
       <Button
+        variant="ghost"
         size="icon"
         onMouseDown={() => handleSubmitOtherTask(otherTaskForm.comment, otherTaskForm.defaultOption)}
         disabled={otherTaskForm.comment.trim() === "" || loading}
       >
         {
           loading ? (
-            <Loader2 className="animate-spin size-10" />
+            <Loader2 className="animate-spin" />
           ) : (
-            <ArrowRight className="size-6" />
+            <ArrowRight color="blue" />
           )
         }
       </Button>

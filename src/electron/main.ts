@@ -26,8 +26,11 @@ app.on("ready", function() {
 	const mainWindow = createWindow(
 		isDev() ? "http://localhost:5123" : getMainUIPath(),
 		{
-			width: 1000,
+			width: 500,
+			minWidth: 500,
 			height: 500,
+			minHeight: 500,
+			alwaysOnTop: true,
 			webPreferences: {
 				preload: getPreloadPath()
 			},
@@ -37,7 +40,9 @@ app.on("ready", function() {
 		isDev() ? 'http://localhost:5123/toolbar.html' : getToolbarUIPath(),
 		{
 			width: 700,
-			height: 40,
+			minWidth: 600,
+			height: 45,
+			minHeight: 45,
 			titleBarStyle: "hidden",
 			frame: false,
 			skipTaskbar: true,
@@ -94,13 +99,13 @@ app.on("ready", function() {
 			// Create the task directly
 			const result = await createTask(data);
 			hideWindow(mainWindow, app)
-			showWindow(toolbarWindow)
+			showWindow(toolbarWindow, app)
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 			return
 		}
 		// There's a collision ask if wants to continue
-		showWindow(mainWindow)
+		showWindow(mainWindow, app)
 		mainWindow.focus()
 		ipcWebContentsSend("checkTaskCollisionResult", mainWindow.webContents, { ...result, creationData: data })
 	})
@@ -109,7 +114,7 @@ app.on("ready", function() {
 		const result = await createTask(data);
 		if (result.success) {
 			hideWindow(mainWindow, app)
-			showWindow(toolbarWindow)
+			showWindow(toolbarWindow, app)
 		}
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
@@ -119,7 +124,7 @@ app.on("ready", function() {
 		const result = await createOtherTask(data)
 		if (result.success) {
 			hideWindow(mainWindow, app)
-			showWindow(toolbarWindow)
+			showWindow(toolbarWindow, app)
 		}
 		ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result.success ? { success: true, task: result.otherTask } : result)
@@ -134,7 +139,7 @@ app.on("ready", function() {
 	ipcMainOn("resumeTask", async (data) => {
 		const result = await resumeTask(data.taskId)
 		hideWindow(mainWindow, app)
-		showWindow(toolbarWindow)
+		showWindow(toolbarWindow, app)
 		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 	})
@@ -144,10 +149,12 @@ app.on("ready", function() {
 			const result = await completeOtherTask(data.taskId)
 			ipcWebContentsSend("completeOtherTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+			ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
 		} else {
 			const result = await completeTask(data.taskId)
 			ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+			ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
 		}
 	})
 
@@ -155,12 +162,13 @@ app.on("ready", function() {
 		const result = await cancelTask(data.taskId)
 		ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
 	})
 
 	ipcMainHandle('getToolbarTask', () => getCurrTask())
 
 	ipcMainOn("openMainWindow", () => {
-		showWindow(mainWindow)
+		showWindow(mainWindow, app)
 		mainWindow.focus()
 	})
 

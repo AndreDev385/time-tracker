@@ -76,16 +76,27 @@ export function InProgressTask() {
     })
   }, [])
 
+  function handleFinish() {
+    if (comment.action === "solved") {
+      handleCompleteTask(task.id, comment.value)
+    }
+    if (comment.action === "canceled") {
+      handleCancelTask(task.id, comment.value)
+    }
+  }
+
   return comment.show ? (
     <div className="flex gap-4">
       <Input
         value={comment.value}
         onChange={(e) => setComment(prev => ({ ...prev, value: e.target.value }))}
         placeholder="Observaciones"
+        onKeyDown={(e) => e.key === "Enter" ? handleFinish() : null}
       />
       <div className="flex gap-2 justify-end">
         <Button
-          variant="destructive"
+          size="icon"
+          variant="ghost"
           onMouseDown={() => {
             setComment({
               action: "",
@@ -94,19 +105,14 @@ export function InProgressTask() {
             })
           }}
         >
-          <ArrowLeft />
+          <ArrowLeft color="red" />
         </Button>
         <Button
-          onMouseDown={() => {
-            if (comment.action === "solved") {
-              handleCompleteTask(task.id, comment.value)
-            }
-            if (comment.action === "canceled") {
-              handleCancelTask(task.id, comment.value)
-            }
-          }}
+          size="icon"
+          variant="ghost"
+          onMouseDown={handleFinish}
         >
-          <ArrowRight />
+          <ArrowRight color="blue" />
         </Button>
       </div>
     </div>

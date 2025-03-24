@@ -120,7 +120,10 @@ electron.contextBridge.exposeInMainWorld('electron', {
 	openMainWindow: () => {
 		ipcSend("openMainWindow", undefined)
 	},
-	getTodaysTasks: async () => ipcInvoke("getTodaysTasks")
+	getTodaysTasks: async () => ipcInvoke("getTodaysTasks"),
+	reloadTodaysTasks(callback) {
+		ipcOn("reloadTodaysTasks", data => callback(data))
+	},
 
 } satisfies Window['electron'])
 

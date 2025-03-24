@@ -12,18 +12,31 @@ export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWind
 	tray.setContextMenu(
 		Menu.buildFromTemplate([
 			{
-				label: 'Abrir',
+				label: 'Principal',
 				click: () => {
-					mainWindow.show();
-					if (app.dock) {
-						app.dock.show();
+					console.log({ isMaximized: mainWindow.isMaximized() })
+					if (mainWindow.isVisible()) {
+						mainWindow.hide()
+						if (app.dock) {
+							app.dock.hide()
+						}
+					} else {
+						mainWindow.show();
+						if (app.dock) {
+							app.dock.show();
+						}
 					}
 				},
 			},
 			{
 				label: 'Toolbar',
 				click: () => {
-					toolbarWindow.show();
+					console.log({ isMaximized: toolbarWindow.isMaximized() })
+					if (toolbarWindow.isVisible()) {
+						toolbarWindow.hide();
+					} else {
+						toolbarWindow.show();
+					}
 				},
 			},
 			{

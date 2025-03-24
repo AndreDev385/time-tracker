@@ -5,8 +5,7 @@ import { Loader2 } from "lucide-react"
 import { LocalStorage } from "../storage"
 import { useNavigate } from "react-router"
 import { ROUTES } from "../main"
-import { DropdownCard } from "../components/shared/dropdown"
-import { PendingTask } from "../components/tasks/pending-task"
+import { PendingTaskList } from "../components/tasks/pending-task"
 import { isTask } from "../lib/check-task-type"
 import { TasksForm } from "../components/tasks/form"
 import { CollisionModal } from "../components/tasks/collision-modal"
@@ -111,20 +110,11 @@ export function TasksPage() {
       <div className="flex flex-col gap-2 border border-gray-300 rounded-lg p-4">
         <TasksForm />
       </div>
-      {/* tasks list */}
-      {pausedTasks.length > 0 ?
-        (
-          <DropdownCard title="Pendientes">
-            {pausedTasks.map(task => (
-              <PendingTask
-                key={task.id}
-                task={task}
-                loading={loading}
-                handleResumeTask={handleResumeTask}
-              />
-            ))}
-          </DropdownCard>
-        ) : null}
+      <PendingTaskList
+        loading={loading}
+        handleResumeTask={handleResumeTask}
+        pausedTasks={pausedTasks}
+      />
     </>
   )
 }

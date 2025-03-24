@@ -24,7 +24,7 @@ export function DropdownCard({ title, className, children }: DropdownCardProps) 
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between p-4 hover:bg-muted/50 rounded-lg"
       >
-        <h3 className="text-lg font-medium">{title}</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
         <ChevronDown className={cn("h-5 w-5 transition-transform duration-200", isOpen ? "rotate-180" : "")} />
       </button>
       {/*
