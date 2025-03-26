@@ -2,7 +2,7 @@ import { BrowserWindow, Menu, Tray, app } from 'electron';
 import { getAssetPath } from './lib/path-resolver.js';
 import path from 'path';
 
-export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWindow) {
+export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWindow, actualJourney: boolean) {
 	const tray = new Tray(
 		path.join(
 			getAssetPath(), 'reloj.png'
@@ -30,6 +30,7 @@ export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWind
 			},
 			{
 				label: 'Toolbar',
+				enabled: !actualJourney,
 				click: () => {
 					console.log({ isMaximized: toolbarWindow.isMaximized() })
 					if (toolbarWindow.isVisible()) {

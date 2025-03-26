@@ -86,8 +86,8 @@ export function Toolbar() {
 
   if (loading || !journey) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className='animate-spin size-10' />
+      <div className="h-full flex items-start justify-center">
+        <Loader2 className='animate-spin' />
       </div>
     )
   }
@@ -165,7 +165,7 @@ function Wrapper({ children, journey }: {
   }
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-between pr-2">
+    <div className="h-full flex items-center justify-between pr-2">
       <Draggable />
       <SmallJourneyTimer journey={journey} />
       <div className="flex items-center justify-between w-full overflow-x-hidden">

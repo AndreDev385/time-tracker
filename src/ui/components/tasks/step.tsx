@@ -8,7 +8,7 @@ export function Step({ options, setSelected, message }: StepProps) {
             <p
               key={v.id}
               onMouseDown={() => setSelected(v.id)}
-              className="hover:underline hover:cursor-pointer font-bold text-xs"
+              className="hover:underline hover:cursor-pointer hover:font-bold text-sm"
             >
               {v.name}
             </p>

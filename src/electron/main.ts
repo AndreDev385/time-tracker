@@ -1,4 +1,6 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, powerMonitor } from 'electron'
+import { platform } from "process"
+
 import { isDev } from './lib/utils.js'
 import { getMainUIPath, getPreloadPath, getToolbarUIPath } from './lib/path-resolver.js'
 import { createTray } from './tray.js'
@@ -30,7 +32,6 @@ app.on("ready", function() {
 			minWidth: 500,
 			height: 500,
 			minHeight: 500,
-			alwaysOnTop: true,
 			webPreferences: {
 				preload: getPreloadPath()
 			},
@@ -46,16 +47,20 @@ app.on("ready", function() {
 			titleBarStyle: "hidden",
 			frame: false,
 			skipTaskbar: true,
+			alwaysOnTop: true,
 			webPreferences: {
 				contextIsolation: true,
 				preload: getPreloadPath()
 			}
 		}, false)
 
-	let appCanBeClose = true
+	let activeJourney: Journey | null = null;
+
 	async function checkJourney() {
 		const result = await getActualJourney()
-		appCanBeClose = !result.success
+		if (result.success) {
+			activeJourney = result.journey
+		}
 	}
 	checkJourney()
 
@@ -75,7 +80,7 @@ app.on("ready", function() {
 	ipcMainOn("startJourney", async () => {
 		const result = await startJourney()
 		if (result.success) {
-			appCanBeClose = false
+			activeJourney = result.journey
 		}
 		ipcWebContentsSend("startJourneyResult", mainWindow.webContents, result)
 	})
@@ -83,7 +88,7 @@ app.on("ready", function() {
 	ipcMainOn("endJourney", async (journeyId: number) => {
 		const result = await endJourney(journeyId)
 		if (result.success) {
-			appCanBeClose = true
+			activeJourney = null
 			hideWindow(toolbarWindow, app)
 		}
 		ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
@@ -98,7 +103,6 @@ app.on("ready", function() {
 		if (!result.collision) {
 			// Create the task directly
 			const result = await createTask(data);
-			hideWindow(mainWindow, app)
 			showWindow(toolbarWindow, app)
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
@@ -113,7 +117,6 @@ app.on("ready", function() {
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
 		if (result.success) {
-			hideWindow(mainWindow, app)
 			showWindow(toolbarWindow, app)
 		}
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
@@ -123,43 +126,41 @@ app.on("ready", function() {
 	ipcMainOn("createOtherTaskSubmit", async (data) => {
 		const result = await createOtherTask(data)
 		if (result.success) {
-			hideWindow(mainWindow, app)
 			showWindow(toolbarWindow, app)
 		}
 		ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result.success ? { success: true, task: result.otherTask } : result)
 	})
 
-	ipcMainOn("pauseTask", async (data) => {
-		const result = await pauseTaskInterval(data.taskId)
+	ipcMainOn("pauseTask", async ({ taskId }) => {
+		const result = await pauseTaskInterval({ id: taskId, comment: "" })
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 	})
 
 	ipcMainOn("resumeTask", async (data) => {
 		const result = await resumeTask(data.taskId)
-		hideWindow(mainWindow, app)
 		showWindow(toolbarWindow, app)
 		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 	})
 
-	ipcMainOn("completeTask", async (data) => {
-		if (data.isOtherTask) {
-			const result = await completeOtherTask(data.taskId)
+	ipcMainOn("completeTask", async ({ taskId, isOtherTask, comment = "" }) => {
+		if (isOtherTask) {
+			const result = await completeOtherTask({ id: taskId, comment })
 			ipcWebContentsSend("completeOtherTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 			ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
 		} else {
-			const result = await completeTask(data.taskId)
+			const result = await completeTask({ id: taskId, comment })
 			ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 			ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
 		}
 	})
 
-	ipcMainOn("cancelTask", async (data) => {
-		const result = await cancelTask(data.taskId)
+	ipcMainOn("cancelTask", async ({ taskId, comment = "" }) => {
+		const result = await cancelTask({ id: taskId, comment })
 		ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 		ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
@@ -181,24 +182,77 @@ app.on("ready", function() {
 		ipcWebContentsSend("screenShotResult", mainWindow.webContents, result)
 	})
 
-	createTray(mainWindow, toolbarWindow)
+	createTray(mainWindow, toolbarWindow, !!activeJourney)
 
 	// check if there's a journey active
 	mainWindow.on('close', (e) => {
-		if (appCanBeClose) {
-			app.quit()
-			return;
+		if (activeJourney) {
+			e.preventDefault()
+			mainWindow.hide()
 		}
-		e.preventDefault()
-		mainWindow.hide()
 	});
 
 	toolbarWindow.on("close", (e) => {
-		if (appCanBeClose) {
+		if (activeJourney) {
+			e.preventDefault()
+			toolbarWindow.hide()
 			return
 		}
-		e.preventDefault()
-		toolbarWindow.hide()
 	});
+
+	/* Check inactivity */
+	const SECONDS_IN_MINUTE = 60
+	// TODO: find configured time from the backend
+	const idleTimeAllowed = 30 * SECONDS_IN_MINUTE
+
+	setInterval(() => {
+		const idleTime = powerMonitor.getSystemIdleTime()
+		if (idleTime >= idleTimeAllowed) {
+			// stop journey
+			if (activeJourney) {
+				endJourney(activeJourney.id).then(result => {
+					if (result.success) {
+						activeJourney = null
+						ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+					}
+				})
+			}
+		}
+	}, 30_000)
+
+	/* System shutdown */
+	if (platform === "win32" || platform === "linux") {
+		(powerMonitor as PowerMonitor).on('shutdown', async (e: any) => {
+			if (activeJourney) {
+				e.preventDefault()
+				// call finish journey and tasks 
+				const result = await endJourney(activeJourney.id)
+				if (!result.success) {
+					app.quit()
+					return
+				}
+				activeJourney = null;
+				ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+				app.quit()
+			}
+		});
+	}
+
+	app.on("before-quit", async (e) => {
+		console.log("before-quit")
+		if (activeJourney) {
+			e.preventDefault()
+			// call finish journey and tasks 
+			const result = await endJourney(activeJourney.id)
+			if (!result.success) {
+				app.quit()
+				return
+			}
+			activeJourney = null;
+			ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+			app.quit()
+		}
+	})
 })
 
+type PowerMonitor = typeof powerMonitor & { on(event: 'shutdown', listener: (e: unknown) => void): void }

@@ -1,7 +1,7 @@
 import React from "react";
 import { StopIcon } from "@heroicons/react/24/solid";
 
-import { formatDistanceHHMMSS } from "../../lib/utils";
+import { formatDistanceHHMM } from "../../lib/utils";
 import { Button } from "../shared/button";
 
 export function JourneyTimer({ journey, handleStopJourney, }: Props) {
@@ -18,7 +18,7 @@ export function JourneyTimer({ journey, handleStopJourney, }: Props) {
   return (
     <div className="w-full">
       <div className="flex flex-row items-center justify-between p-4 border border-gray-300 rounded-lg shadow-lg w-full">
-        <h2 className="font-bold">{formatDistanceHHMMSS(journey?.startAt, currentTime)}</h2>
+        <h2 className="font-bold">{formatDistanceHHMM(journey?.startAt, currentTime)}</h2>
         <Button
           variant="ghost"
           size="icon"

@@ -11,6 +11,7 @@ import { JourneyTimer } from "../components/tasks/journey-timer";
 import { Separator } from "../components/shared/separator";
 import { FinishedTask } from "../components/tasks/finished-task";
 import { FinishedOtherTask } from "../components/tasks/finished-other-task";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/shared/tabs"
 
 export function JourneyLayout() {
   const [submitting, setSubmitting] = React.useState(false);
@@ -54,6 +55,7 @@ export function JourneyLayout() {
     return window.electron.endJourneyResult((data) => {
       if (data.success) {
         LocalStorage().removeItem("journey")
+        LocalStorage().removeItem("currTask")
         setJourney(null)
       } else {
         displayMessage(data.error, "error")
@@ -90,27 +92,38 @@ export function JourneyLayout() {
       {
         journey ? (
           <div className="flex gap-4 max-w-3xl w-full">
-            <div className="w-full space-y-6">
-              <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
-              <Separator />
-              <Outlet />
-              <div className="space-y-2">
-                <div className="flex flex-col gap-2">
-                  {
-                    tasks.map(t => (
-                      <FinishedTask key={t.id} task={t} />
-                    ))
-                  }
+            <Tabs defaultValue="default" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="default">Zona de trabajo</TabsTrigger>
+                <TabsTrigger value="history">Historial</TabsTrigger>
+              </TabsList>
+              <TabsContent value="default">
+                <div className="w-full space-y-6">
+                  <JourneyTimer journey={journey} handleStopJourney={handleStopJourney} />
+                  <Separator />
+                  <Outlet />
+                  <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
+                      {
+                        tasks.map(t => (
+                          <FinishedTask key={t.id} task={t} />
+                        ))
+                      }
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {
+                        otherTasks.map(t => (
+                          <FinishedOtherTask key={t.id} task={t} displayFullDate={false} />
+                        ))
+                      }
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  {
-                    otherTasks.map(t => (
-                      <FinishedOtherTask key={t.id} task={t} />
-                    ))
-                  }
-                </div>
-              </div>
-            </div>
+              </TabsContent>
+              <TabsContent value="history">
+                History
+              </TabsContent>
+            </Tabs>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-screen">

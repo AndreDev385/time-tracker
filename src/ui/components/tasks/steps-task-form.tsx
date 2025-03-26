@@ -85,6 +85,7 @@ export function StepsTaskForm({
       setSelected: (id: number) => {
         setSelectedValues([...selectedValues, createTaskInfo.recordTypes.find(t => t.id === id)!.name as string])
         onFormStateChange("selectedRecordType", id)
+        console.log({ recordTypeId: id, formState: formState.selectedRecordType })
         handleSubmitTask({
           userId: user.id,
           projectId: Number(formState.selectedProject),
@@ -92,7 +93,7 @@ export function StepsTaskForm({
           recordId: formState.recordId,
           taskTypeId: Number(formState.selectedTaskType),
           businessId: Number(formState.selectedBusiness),
-          recordTypeId: Number(id),
+          recordTypeId: formState.selectedRecordType ? Number(formState.selectedRecordType) : id
         })
       }
     },
@@ -117,14 +118,14 @@ export function StepsTaskForm({
   function renderStep(step: number) {
     if (step === 1) {
       return (
-        <div className="flex justify-between w-full items-center gap-4">
-          <div className="flex justify-between w-full items-center gap-4">
+        <div className="flex justify-between w-full gap-4">
+          <div className="flex justify-between w-full gap-4">
             <Step {...steps[step]} />
           </div>
           {inToolbar ? (
             <div className="w-36">
               <p
-                className="hover:underline hover:cursor-pointer font-bold text-end text-xs"
+                className="hover:underline hover:cursor-pointer hover:font-bold text-end text-sm"
                 onMouseDown={() => showOtherTaskForm()}
               >
                 Otras tareas
@@ -177,7 +178,7 @@ export function StepsTaskForm({
       {inToolbar ? (
         <div className="flex gap-4">
           {selectedValues.map(v => (
-            <p key={v} className="text-sm font-bold text-blue-500">{v}</p>
+            <p key={v} className="text-sm text-blue-500">{v}</p>
           ))}
         </div>
       ) : null}

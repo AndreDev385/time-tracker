@@ -8,6 +8,7 @@ async function endTaskInterval(
 	intent: EndTaskIntervalIntent,
 	isOtherTask: boolean,
 	taskId: Task['id'],
+	comment: string,
 ): Promise<SuccessResponse | ErrorResponse> {
 	try {
 		const URL = isOtherTask ? `${API_URL}/other-tasks/${taskId}` : `${API_URL}/tasks/${taskId}`
@@ -20,6 +21,7 @@ async function endTaskInterval(
 			},
 			body: JSON.stringify({
 				intent: intent,
+				comment
 			}),
 		})
 
@@ -39,7 +41,11 @@ async function endTaskInterval(
 	}
 }
 
-const curriedEnTaskInterval = (status: EndTaskIntervalIntent) => (isOtherTask: boolean) => (id: Task['id']) => endTaskInterval(status, isOtherTask, id)
+const curriedEnTaskInterval = (status: EndTaskIntervalIntent) => (
+	isOtherTask: boolean
+) => (
+	{ id, comment }: { id: Task['id'], comment: string }
+) => endTaskInterval(status, isOtherTask, id, comment)
 
 export const completeTask = curriedEnTaskInterval("complete")(false)
 export const cancelTask = curriedEnTaskInterval("cancel")(false)

@@ -9,6 +9,7 @@ import { PendingTaskList } from "../components/tasks/pending-task"
 import { isTask } from "../lib/check-task-type"
 import { TasksForm } from "../components/tasks/form"
 import { CollisionModal } from "../components/tasks/collision-modal"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/shared/tabs"
 
 export function TasksPage() {
   const navigate = useNavigate()
