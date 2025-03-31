@@ -20,10 +20,15 @@ function removeItem(key: keyof Storage) {
   window.localStorage.removeItem(key)
 }
 
+function clear() {
+  window.localStorage.clear()
+}
+
 export function LocalStorage() {
   return {
     getItem,
     setItem,
-    removeItem
+    removeItem,
+    clear,
   }
 }

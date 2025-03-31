@@ -1,7 +1,7 @@
 import { app, BrowserWindow, powerMonitor } from 'electron'
 import { platform } from "process"
 
-import { isDev } from './lib/utils.js'
+import { isDev, SETTINGS } from './lib/utils.js'
 import { getMainUIPath, getPreloadPath, getToolbarUIPath } from './lib/path-resolver.js'
 import { createTray } from './tray.js'
 import { signIn } from './server/sign-in.js'
@@ -23,13 +23,15 @@ import { todayCompletedTasks } from './server/tasks/today-completed-tasks.js'
 import { captureScreens } from './lib/capture-screens.js'
 import { testCredentials, uploadFile } from './lib/upload-captures.js'
 import { createWindow, hideWindow, showWindow } from './window-handlers.js'
+import { getAppSettings } from './server/app-settings.js'
+import { getTaskHistory } from './server/tasks/paginate-task-history.js'
 
 app.on("ready", function() {
 	const mainWindow = createWindow(
 		isDev() ? "http://localhost:5123" : getMainUIPath(),
 		{
-			width: 500,
-			minWidth: 500,
+			width: 1000,
+			minWidth: 1000,
 			height: 500,
 			minHeight: 500,
 			webPreferences: {
@@ -182,6 +184,16 @@ app.on("ready", function() {
 		ipcWebContentsSend("screenShotResult", mainWindow.webContents, result)
 	})
 
+	ipcMainOn("getTaskHistory", async ({ offset, limit, recordId }) => {
+		const result = await getTaskHistory(offset, limit, recordId)
+		ipcWebContentsSend("getTaskHistoryResult", mainWindow.webContents, result)
+	})
+
+	ipcMainOn("logout", () => {
+		saveToken("")
+		ipcWebContentsSend("logoutResult", mainWindow.webContents, undefined)
+	})
+
 	createTray(mainWindow, toolbarWindow, !!activeJourney)
 
 	// check if there's a journey active
@@ -200,10 +212,19 @@ app.on("ready", function() {
 		}
 	});
 
-	/* Check inactivity */
-	const SECONDS_IN_MINUTE = 60
 	// TODO: find configured time from the backend
-	const idleTimeAllowed = 30 * SECONDS_IN_MINUTE
+	let idleTimeAllowed = 300 // 300s 5min
+	async function getInactiveTimeAllowed() {
+		const result = await getAppSettings()
+
+		if (!result.success) {
+			idleTimeAllowed = 300
+			return;
+		}
+
+		idleTimeAllowed = Number(result.settings.find(as => as.name === SETTINGS.INACTIVE_TIME_ALLOWED)!.value)
+	}
+	getInactiveTimeAllowed()
 
 	setInterval(() => {
 		const idleTime = powerMonitor.getSystemIdleTime()
@@ -239,7 +260,6 @@ app.on("ready", function() {
 	}
 
 	app.on("before-quit", async (e) => {
-		console.log("before-quit")
 		if (activeJourney) {
 			e.preventDefault()
 			// call finish journey and tasks 
@@ -254,5 +274,6 @@ app.on("ready", function() {
 		}
 	})
 })
+
 
 type PowerMonitor = typeof powerMonitor & { on(event: 'shutdown', listener: (e: unknown) => void): void }

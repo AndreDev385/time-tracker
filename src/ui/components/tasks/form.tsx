@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { OtherTaskForm } from "./other-task-form"
 import { StepsTaskForm } from "./steps-task-form"
-import { displayMessage } from "../../lib/utils"
 import { LocalStorage } from "../../storage"
 
 export function TasksForm({ inToolbar = true }: Props) {
@@ -12,6 +11,11 @@ export function TasksForm({ inToolbar = true }: Props) {
   const [createTaskInfo, setCreateTaskInfo] = React.useState<CreateTaskInfo>()
   // TODO: maybe it's good idea to save the user every time the journey page is loaded to avoid deprecated data in assignedProjects
   const [user, setUser] = React.useState<JWTTokenData>();
+
+  React.useEffect(() => {
+    setUser(LocalStorage().getItem("user") as JWTTokenData)
+    setCreateTaskInfo(LocalStorage().getItem("createTaskInfo") as CreateTaskInfo)
+  }, [])
 
   const ONE_ASSIGNED_PROJECT = React.useMemo(() => {
     return user?.assignedProjects ? user.assignedProjects.length === 1 : false;
@@ -39,20 +43,6 @@ export function TasksForm({ inToolbar = true }: Props) {
     setFormState(prev => ({ ...prev, [name]: value }))
   }
 
-  React.useEffect(function loadCreateTaskInfo() {
-    async function loadCreateTaskInfo() {
-      const data = await window.electron.getCreateTaskInfo()
-      if (!data.success) {
-        displayMessage(data.error, "error")
-        return;
-      }
-      LocalStorage().setItem("createTaskInfo", data)
-      setCreateTaskInfo(data)
-      setUser(LocalStorage().getItem("user") as JWTTokenData)
-      setLoading(false)
-    }
-    loadCreateTaskInfo()
-  }, [])
 
   function handleSubmitTask(createTaskFormData: CreateTaskFormData, confirmation: boolean = false) {
     if (confirmation) {

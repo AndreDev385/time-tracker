@@ -78,6 +78,12 @@ type Task = {
   intervals: Interval[]
   comment: string
   status: TaskStatus
+  updatedAt: string;
+  markedAsUnproductiveBy: number | null
+  markedAsUnproductiveByUser?: {
+    id: users.id,
+    name: users.name,
+  }
 }
 
 type OtherTask = {
@@ -87,6 +93,12 @@ type OtherTask = {
   comment: string
   intervals: Interval[]
   status: TaskStatus
+  updatedAt: string;
+}
+
+type AppSetting = {
+  name: string;
+  value: string;
 }
 
 interface Window {
@@ -157,6 +169,15 @@ interface Window {
     reloadTodaysTasks: (
       callback: (data: { tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse) => void
     ) => void
+
+
+    getTaskHistory: (offset: number, limit: number, recordId?: string) => void
+    getTaskHistoryResult: (
+      callback: (data: { count: number, rows: Task[] } & SuccessResponse | ErrorResponse) => void
+    ) => void
+
+    logout: () => void
+    logoutResult: (callback: () => void) => void
   }
 }
 
@@ -206,4 +227,10 @@ type EventPayloadMapping = {
 
   getTodaysTasks: Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse>
   reloadTodaysTasks: { tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse
+
+  getTaskHistory: { offset: number, limit: number, recordId?: string }
+  getTaskHistoryResult: { count: number, rows: Task[] } & SuccessResponse | ErrorResponse
+
+  logout: undefined,
+  logoutResult: undefined,
 }

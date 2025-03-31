@@ -1,6 +1,7 @@
 import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import { mapIntervalsStringToDate } from "../../lib/map-intervals.js";
 
 //TODO: Update to add date range
 
@@ -29,9 +30,13 @@ export async function getMyTasks(statuses: TaskStatus[], endAt?: Date): Promise<
 		}
 
 		const data = await response.json()
+
 		return {
 			success: true,
-			tasks: data,
+			tasks: data.map((t: { intervals: { startAt: string, endAt: string | null }[] }) => ({
+				...t,
+				intervals: mapIntervalsStringToDate(t.intervals)
+			})),
 		}
 
 	} catch (e) {

@@ -14,7 +14,6 @@ export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWind
 			{
 				label: 'Principal',
 				click: () => {
-					console.log({ isMaximized: mainWindow.isMaximized() })
 					if (mainWindow.isVisible()) {
 						mainWindow.hide()
 						if (app.dock) {
@@ -32,7 +31,6 @@ export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWind
 				label: 'Toolbar',
 				enabled: !actualJourney,
 				click: () => {
-					console.log({ isMaximized: toolbarWindow.isMaximized() })
 					if (toolbarWindow.isVisible()) {
 						toolbarWindow.hide();
 					} else {

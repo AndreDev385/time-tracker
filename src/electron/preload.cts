@@ -125,6 +125,25 @@ electron.contextBridge.exposeInMainWorld('electron', {
 		ipcOn("reloadTodaysTasks", data => callback(data))
 	},
 
+	getTaskHistory(offset, limit, recordId) {
+		ipcSend("getTaskHistory", { offset, limit, recordId })
+	},
+
+	getTaskHistoryResult(callback) {
+		ipcOn("getTaskHistoryResult", (data) => {
+			callback(data)
+		})
+	},
+
+	logout() {
+		ipcSend("logout", undefined)
+	},
+	logoutResult(callback) {
+		ipcOn("logoutResult", () => {
+			callback()
+		})
+	},
+
 } satisfies Window['electron'])
 
 // ----------------------------

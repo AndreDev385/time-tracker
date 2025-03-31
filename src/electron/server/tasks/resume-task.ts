@@ -1,6 +1,7 @@
 import { net } from "electron"
 import { readToken } from "../../lib/jwt.js"
 import { API_URL } from "../config.js"
+import { mapIntervalsStringToDate } from "../../lib/map-intervals.js"
 
 export async function resumeTask(taskId: Task['id']): Promise<{ task: Task } & SuccessResponse | ErrorResponse> {
 	try {
@@ -25,9 +26,7 @@ export async function resumeTask(taskId: Task['id']): Promise<{ task: Task } & S
 			success: response.ok,
 			task: {
 				...json.task,
-				intervals: json.task.intervals.map((i: { startAt: string, endAt: string | null }) => (
-					{ startAt: new Date(i.startAt), endAt: i.endAt ? new Date(i.endAt) : null }
-				))
+				intervals: mapIntervalsStringToDate(json.task.intervals),
 			}
 		}
 	} catch (e) {

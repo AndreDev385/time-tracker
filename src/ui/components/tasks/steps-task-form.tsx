@@ -85,7 +85,6 @@ export function StepsTaskForm({
       setSelected: (id: number) => {
         setSelectedValues([...selectedValues, createTaskInfo.recordTypes.find(t => t.id === id)!.name as string])
         onFormStateChange("selectedRecordType", id)
-        console.log({ recordTypeId: id, formState: formState.selectedRecordType })
         handleSubmitTask({
           userId: user.id,
           projectId: Number(formState.selectedProject),

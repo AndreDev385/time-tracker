@@ -1,6 +1,4 @@
 import { WebFrameMain } from 'electron';
-import { getMainUIPath } from './path-resolver.js';
-import { pathToFileURL } from 'url';
 import { config } from '../config.js';
 
 export function isDev(): boolean {
@@ -11,7 +9,10 @@ export function validateEventFrame(frame: WebFrameMain) {
 	if (isDev() && new URL(frame.url).host === 'localhost:5123') {
 		return;
 	}
-	/*if (frame.url !== pathToFileURL(getMainUIPath()).toString()) {
-		throw new Error('Malicious event');
-	}*/
 }
+
+export const SETTINGS = {
+	MINIMUM_TIME_FOR_SECOND_FASE: "MINIMUM_TIME_FOR_SECOND_FASE",
+	INACTIVE_TIME_ALLOWED: "INACTIVE_TIME_ALLOWED",
+	INTERVAL_BETWEEN_CAPTURES: "INTERVAL_BETWEEN_CAPTURES",
+} as const;

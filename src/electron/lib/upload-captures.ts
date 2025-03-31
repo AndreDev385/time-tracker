@@ -54,10 +54,8 @@ function dataURLtoFile(dataurl: string, filename: string) {
 export async function uploadFile(dataURL: string) {
 	try {
 		const file = dataURLtoFile(dataURL, `capure-${new Date().getTime()}.png`)
-		console.log({ file })
 		// 1. Get pre-signed URL from your server
 		const uploadUrl = await generateUploadUrl(file)
-		console.log({ uploadUrl })
 
 		if (!uploadUrl) {
 			return;

@@ -5,11 +5,10 @@ import { Loader2 } from "lucide-react"
 import { LocalStorage } from "../storage"
 import { useNavigate } from "react-router"
 import { ROUTES } from "../main"
-import { PendingTaskList } from "../components/tasks/pending-task"
 import { isTask } from "../lib/check-task-type"
 import { TasksForm } from "../components/tasks/form"
 import { CollisionModal } from "../components/tasks/collision-modal"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/shared/tabs"
+import { TasksTable } from "../components/tasks/task-table"
 
 export function TasksPage() {
   const navigate = useNavigate()
@@ -23,6 +22,11 @@ export function TasksPage() {
     open: false,
     data: null
   })
+
+  function handleResumeTask(taskId: Task['id']) {
+    window.electron.resumeTask({ taskId, isOtherTask: false })
+    setLoading(true)
+  }
 
   React.useEffect(() => {
     const curr = LocalStorage().getItem("currTask")
@@ -78,10 +82,6 @@ export function TasksPage() {
     })
   }, [])
 
-  function handleResumeTask(taskId: Task['id'], isOtherTask?: boolean) {
-    window.electron.resumeTask({ taskId, isOtherTask: isOtherTask ?? false })
-    setLoading(true)
-  }
 
   React.useEffect(function resumeTaskResponse() {
     return window.electron.resumeTaskResult((data) => {
@@ -111,11 +111,17 @@ export function TasksPage() {
       <div className="flex flex-col gap-2 border border-gray-300 rounded-lg p-4">
         <TasksForm />
       </div>
-      <PendingTaskList
-        loading={loading}
-        handleResumeTask={handleResumeTask}
-        pausedTasks={pausedTasks}
-      />
+      {
+        pausedTasks.length > 0 ?
+          (
+            <TasksTable
+              description="Lista de tareas pausadas"
+              loading={loading}
+              handleResumeTask={handleResumeTask}
+              tasks={pausedTasks}
+            />
+          ) : null
+      }
     </>
   )
 }

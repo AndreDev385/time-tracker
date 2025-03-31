@@ -32,7 +32,9 @@ export function displayMessage(
 export const DATE_FORMATS = {
   ddMMyyyy: 'dd/MM/yyyy',
   ddMMyyyyhhmm: "dd/MM/yyyy hh:mm",
-  hhmm: "hh:mm"
+  hhmm: "hh:mm",
+  ddMMyyyyhmma: 'dd/MM/yyyy h:mm a',
+  hmma: "h:mm a",
 }
 
 export function formatDate(date: Date, typeOfFormat: typeof DATE_FORMATS[keyof typeof DATE_FORMATS]) {
