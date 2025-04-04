@@ -8,11 +8,9 @@ import { DATE_FORMATS, formatDate, taskDuration } from "../../lib/utils";
 import { LocalStorage } from "../../storage";
 import { Button } from "../shared/button";
 
-export function TasksTable({ tasks, handleResumeTask, description, loading = false }: Props) {
+export function TasksTable({ tasks, handleResumeTask, description, readonly = false, loading = false }: Props) {
   const format = DATE_FORMATS.ddMMyyyyhmma
   const info = LocalStorage().getItem("createTaskInfo")
-
-  console.log({ tasks })
 
   function actions(t: Task) {
     const values = {
@@ -22,7 +20,7 @@ export function TasksTable({ tasks, handleResumeTask, description, loading = fal
         variant="ghost"
         size="icon"
         onMouseDown={() => handleResumeTask!(t.id)}
-        disabled={loading}
+        disabled={loading || readonly}
       >
         {loading ? <Loader2 className="animate-spin" /> : <PlayIcon color="green" className="size-6" />}
       </Button>,
@@ -109,6 +107,7 @@ export function TasksTable({ tasks, handleResumeTask, description, loading = fal
 }
 
 type Props = {
+  readonly: boolean;
   loading: boolean;
   description: string;
   handleResumeTask: ((taskId: Task['id']) => void) | null

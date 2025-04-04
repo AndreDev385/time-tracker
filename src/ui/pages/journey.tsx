@@ -18,7 +18,8 @@ export function JourneyLayout() {
   const [loading, setLoading] = React.useState(false);
   const [journey, setJourney] = React.useState<{ id: Journey['id'], startAt: Journey['startAt'] } | null>(null)
 
-  const [tasks, setTasks] = React.useState<Task[]>([])
+  const [completedTasks, setCompletedTasks] = React.useState<Task[]>([])
+  const [pausedTasks, setPausedTasks] = React.useState<Task[]>([])
   const [otherTasks, setOtherTasks] = React.useState<OtherTask[]>([])
 
   React.useEffect(function loadJourney() {
@@ -64,16 +65,30 @@ export function JourneyLayout() {
   React.useEffect(function completedTask() {
     window.electron.getTodaysTasks().then(data => {
       if (data.success) {
-        setTasks(data.tasks)
+        setCompletedTasks(data.tasks)
         setOtherTasks(data.otherTasks)
+      }
+    })
+
+    window.electron.getMyTasks().then(data => {
+      if (data.success) {
+        setPausedTasks(data.tasks)
       }
     })
   }, [])
 
+  React.useEffect(() => {
+    window.electron.reloadPausedTasks(data => {
+      if (data.success) {
+        setPausedTasks(data.tasks)
+      }
+    })
+  })
+
   React.useEffect(function reloadCompletedTask() {
     return window.electron.reloadTodaysTasks((data) => {
       if (data.success) {
-        setTasks(data.tasks)
+        setCompletedTasks(data.tasks)
         setOtherTasks(data.otherTasks)
       }
     })
@@ -83,6 +98,13 @@ export function JourneyLayout() {
   function handleLogOut() {
     window.electron.logout()
   }
+
+  function handleResumeTask(taskId: Task['id']) {
+    window.electron.resumeTask({ taskId, isOtherTask: false })
+  }
+
+  React.useEffect(function loadMyTasks() {
+  }, [])
 
   React.useEffect(() => {
     return window.electron.logoutResult(() => {
@@ -124,23 +146,33 @@ export function JourneyLayout() {
               <div className="space-y-8">
                 <Separator />
                 <Outlet />
-                <div className="flex flex-col gap-2">
-                  {tasks.length > 0 ? (
-                    <TasksTable
-                      tasks={tasks}
-                      description="Lista de tareas completadas hoy"
-                      handleResumeTask={null}
-                      loading={false}
-                    />
-                  ) : null}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {otherTasks.length > 0 ? (
-                    <OtherTasksTable otherTasks={otherTasks} />
-                  ) : null}
-                </div>
               </div>
-            ) : (
+            ) : null}
+            {
+              pausedTasks.length > 0 ?
+                (
+                  <TasksTable
+                    readonly={!journey}
+                    description="Lista de tareas pausadas"
+                    loading={loading}
+                    handleResumeTask={handleResumeTask}
+                    tasks={pausedTasks}
+                  />
+                ) : null
+            }
+            {completedTasks.length > 0 ? (
+              <TasksTable
+                readonly={!!journey}
+                tasks={completedTasks}
+                description="Lista de tareas completadas hoy"
+                handleResumeTask={null}
+                loading={false}
+              />
+            ) : null}
+            {otherTasks.length > 0 ? (
+              <OtherTasksTable otherTasks={otherTasks} />
+            ) : null}
+            {!journey ? (
               <div>
                 <Button
                   onMouseDown={handleLogOut}
@@ -149,7 +181,7 @@ export function JourneyLayout() {
                   Cerrar sesión <LogOut />
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
         </TabsContent>
         <TabsContent value="history">

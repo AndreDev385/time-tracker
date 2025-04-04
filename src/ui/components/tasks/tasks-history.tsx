@@ -37,8 +37,6 @@ export function TasksHistory() {
     })
   }, [])
 
-  console.log({ tasks })
-
   return (
     <div className="flex flex-col gap-2 mt-4">
       <Input
@@ -47,6 +45,7 @@ export function TasksHistory() {
         placeholder="Buscar expediente"
       />
       <TasksTable
+        readonly={true}
         tasks={tasks}
         description="Lista de tareas finalizadas"
         loading={false}
@@ -98,7 +97,7 @@ function Pagination({ pagination, setPagination, count }: {
       </div>
       <Button
         variant="ghost"
-        disabled={pagination.offset + 2 * pagination.limit > count}
+        disabled={pagination.offset + 1 * pagination.limit > count}
         onMouseDown={() => setPagination(prev => ({ ...prev, offset: prev.offset + 1 }))}
       >
         <ArrowRight color="blue" />

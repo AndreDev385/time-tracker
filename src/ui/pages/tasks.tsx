@@ -8,13 +8,11 @@ import { ROUTES } from "../main"
 import { isTask } from "../lib/check-task-type"
 import { TasksForm } from "../components/tasks/form"
 import { CollisionModal } from "../components/tasks/collision-modal"
-import { TasksTable } from "../components/tasks/task-table"
 
 export function TasksPage() {
   const navigate = useNavigate()
 
   const [loading, setLoading] = React.useState(false)
-  const [pausedTasks, setPausedTasks] = React.useState<Task[]>([])
   const [collisionModal, setCollisionModal] = React.useState<{
     open: boolean,
     data: CreateTaskFormData | null,
@@ -23,10 +21,6 @@ export function TasksPage() {
     data: null
   })
 
-  function handleResumeTask(taskId: Task['id']) {
-    window.electron.resumeTask({ taskId, isOtherTask: false })
-    setLoading(true)
-  }
 
   React.useEffect(() => {
     const curr = LocalStorage().getItem("currTask")
@@ -37,18 +31,6 @@ export function TasksPage() {
         navigate(ROUTES.inProgressOtherTask, { state: { otherTask: curr } })
       }
     }
-  }, [])
-
-  React.useEffect(function loadMyTasks() {
-    async function getMyTasks() {
-      setLoading(true)
-      const data = await window.electron.getMyTasks()
-      if (data.success) {
-        setPausedTasks(data.tasks)
-      }
-      setLoading(false)
-    }
-    getMyTasks()
   }, [])
 
   React.useEffect(function createTaskResult() {
@@ -111,17 +93,6 @@ export function TasksPage() {
       <div className="flex flex-col gap-2 border border-gray-300 rounded-lg p-4">
         <TasksForm />
       </div>
-      {
-        pausedTasks.length > 0 ?
-          (
-            <TasksTable
-              description="Lista de tareas pausadas"
-              loading={loading}
-              handleResumeTask={handleResumeTask}
-              tasks={pausedTasks}
-            />
-          ) : null
-      }
     </>
   )
 }

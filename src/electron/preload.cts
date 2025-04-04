@@ -124,6 +124,9 @@ electron.contextBridge.exposeInMainWorld('electron', {
 	reloadTodaysTasks(callback) {
 		ipcOn("reloadTodaysTasks", data => callback(data))
 	},
+	reloadPausedTasks(callback) {
+		ipcOn("reloadPausedTasks", data => callback(data))
+	},
 
 	getTaskHistory(offset, limit, recordId) {
 		ipcSend("getTaskHistory", { offset, limit, recordId })

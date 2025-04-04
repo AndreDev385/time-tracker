@@ -18,7 +18,7 @@ export async function createTask(data: CreateTaskFormData): Promise<{ task: Task
 		const json = await response.json()
 
 		if (!response.ok) {
-			return { success: false, error: "Ha ocurrido un error" }
+			return { success: false, error: json.error }
 		}
 
 		return {

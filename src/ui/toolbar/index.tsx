@@ -15,7 +15,7 @@ export function Toolbar() {
   const [journey, setJourney] = React.useState<{
     startAt: Journey["startAt"];
     id: Journey["id"];
-  }>()
+  } | null>()
   const [currTask, setCurrTask] = React.useState<Task | OtherTask | null>()
   const [loading, setLoading] = React.useState(false)
 
@@ -37,6 +37,21 @@ export function Toolbar() {
     return () => clearInterval(interval); // Cleanup on unmount
   }, [])
 
+  React.useEffect(function startJourneyResult() {
+    return window.electron.startJourneyResult((data) => {
+      if (data.success) {
+        setJourney(data.journey)
+      }
+    })
+  }, [])
+
+  React.useEffect(function stopJourneyResponse() {
+    return window.electron.endJourneyResult((data) => {
+      if (data.success) {
+        setJourney(null)
+      }
+    })
+  }, [])
 
   React.useEffect(function loadCurrTask() {
     return window.electron.reloadToolbarData((data) => {
@@ -84,10 +99,18 @@ export function Toolbar() {
     }
   }
 
-  if (loading || !journey) {
+  if (loading) {
     return (
       <div className="h-full flex items-start justify-center">
         <Loader2 className='animate-spin' />
+      </div>
+    )
+  }
+
+  if (!journey) {
+    return (
+      <div className='flex items-center justify-center'>
+        <p>Inicia una jornada</p>
       </div>
     )
   }

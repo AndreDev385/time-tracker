@@ -169,6 +169,9 @@ interface Window {
     reloadTodaysTasks: (
       callback: (data: { tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse) => void
     ) => void
+    reloadPausedTasks: (
+      callback: (data: { tasks: Task[] } & SuccessResponse | ErrorResponse) => void
+    ) => void
 
 
     getTaskHistory: (offset: number, limit: number, recordId?: string) => void
@@ -227,6 +230,7 @@ type EventPayloadMapping = {
 
   getTodaysTasks: Promise<{ tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse>
   reloadTodaysTasks: { tasks: Task[], otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse
+  reloadPausedTasks: { tasks: Task[] } & SuccessResponse | ErrorResponse
 
   getTaskHistory: { offset: number, limit: number, recordId?: string }
   getTaskHistoryResult: { count: number, rows: Task[] } & SuccessResponse | ErrorResponse

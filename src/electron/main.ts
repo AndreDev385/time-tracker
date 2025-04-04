@@ -85,6 +85,7 @@ app.on("ready", function() {
 			activeJourney = result.journey
 		}
 		ipcWebContentsSend("startJourneyResult", mainWindow.webContents, result)
+		ipcWebContentsSend("startJourneyResult", toolbarWindow.webContents, result)
 	})
 
 	ipcMainOn("endJourney", async (journeyId: number) => {
@@ -94,6 +95,7 @@ app.on("ready", function() {
 			hideWindow(toolbarWindow, app)
 		}
 		ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+		ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
 	})
 
 	ipcMainOn("checkTaskCollision", async (data) => {
@@ -105,7 +107,6 @@ app.on("ready", function() {
 		if (!result.collision) {
 			// Create the task directly
 			const result = await createTask(data);
-			showWindow(toolbarWindow, app)
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 			return
@@ -118,18 +119,12 @@ app.on("ready", function() {
 
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
-		if (result.success) {
-			showWindow(toolbarWindow, app)
-		}
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 	})
 
 	ipcMainOn("createOtherTaskSubmit", async (data) => {
 		const result = await createOtherTask(data)
-		if (result.success) {
-			showWindow(toolbarWindow, app)
-		}
 		ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result.success ? { success: true, task: result.otherTask } : result)
 	})
@@ -138,13 +133,14 @@ app.on("ready", function() {
 		const result = await pauseTaskInterval({ id: taskId, comment: "" })
 		ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
 	})
 
 	ipcMainOn("resumeTask", async (data) => {
 		const result = await resumeTask(data.taskId)
-		showWindow(toolbarWindow, app)
 		ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result)
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
 	})
 
 	ipcMainOn("completeTask", async ({ taskId, isOtherTask, comment = "" }) => {
@@ -235,6 +231,7 @@ app.on("ready", function() {
 					if (result.success) {
 						activeJourney = null
 						ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+						ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
 					}
 				})
 			}
@@ -254,6 +251,7 @@ app.on("ready", function() {
 				}
 				activeJourney = null;
 				ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+				ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
 				app.quit()
 			}
 		});
@@ -270,6 +268,7 @@ app.on("ready", function() {
 			}
 			activeJourney = null;
 			ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
+			ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
 			app.quit()
 		}
 	})

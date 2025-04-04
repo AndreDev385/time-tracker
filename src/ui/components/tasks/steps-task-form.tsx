@@ -83,7 +83,6 @@ export function StepsTaskForm({
         return workType?.recordTypes.includes(rt.id)
       }),
       setSelected: (id: number) => {
-        setSelectedValues([...selectedValues, createTaskInfo.recordTypes.find(t => t.id === id)!.name as string])
         onFormStateChange("selectedRecordType", id)
         handleSubmitTask({
           userId: user.id,
