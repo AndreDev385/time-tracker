@@ -15,27 +15,33 @@ export function TasksPage() {
   const [loading, setLoading] = React.useState(false)
   const [collisionModal, setCollisionModal] = React.useState<{
     open: boolean,
+    user: string,
+    taskType: string;
     data: CreateTaskFormData | null,
   }>({
     open: false,
+    user: "",
+    taskType: "",
     data: null
   })
 
 
   React.useEffect(() => {
-    const curr = LocalStorage().getItem("currTask")
-    if (curr) {
-      if (isTask(curr)) {
-        navigate(ROUTES.inProgressTask, { state: { task: curr } })
-      } else {
-        navigate(ROUTES.inProgressOtherTask, { state: { otherTask: curr } })
+    window.electron.getCurrTask().then((data) => {
+      if (data.success && data.task) {
+        if (isTask(data.task)) {
+          navigate(ROUTES.inProgressTask, { state: { task: data.task } })
+        } else {
+          navigate(ROUTES.inProgressOtherTask, { state: { otherTask: data.task } })
+        }
       }
-    }
+    })
   }, [])
 
   React.useEffect(function createTaskResult() {
     return window.electron.createTaskResult((result) => {
       if (result.success) {
+        console.log({ result })
         LocalStorage().setItem("currTask", result.task)
         navigate(ROUTES.inProgressTask, { state: { task: result.task } })
       } else {
@@ -59,7 +65,12 @@ export function TasksPage() {
     // TODO: Append submit task data to continue collision
     return window.electron.checkTaskCollisionResult((data) => {
       if (data.success) {
-        setCollisionModal({ open: data.collision, data: data.creationData })
+        setCollisionModal({
+          taskType: data.data?.taskType ?? "",
+          data: data.creationData,
+          user: data.data?.user ?? "",
+          open: data.collision,
+        })
       }
     })
   }, [])

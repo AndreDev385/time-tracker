@@ -18,6 +18,14 @@ export function InProgressOtherTask() {
     setLoading(true)
   }
 
+  React.useEffect(() => {
+    window.electron.getCurrTask().then((data) => {
+      if (!data.success) {
+        navigate(ROUTES.journey)
+      }
+    })
+  }, [])
+
   React.useEffect(function completeTaskResponse() {
     return window.electron.completeOtherTaskResult((data) => {
       setLoading(false)

@@ -55,6 +55,21 @@ export function TasksTable({ tasks, handleResumeTask, description, readonly = fa
             recordType: info?.recordTypes.find(wt => wt.id === t.recordTypeId)?.name,
             business: info?.business.find(wt => wt.id === t.businessId)?.name,
           }
+
+          function renderComment() {
+            if (t?.comment) {
+              return (
+                <div className="text-muted-foreground text-xs truncate max-w-[200px]">
+                  {t?.comment}
+                </div>
+              );
+            }
+            if (!t?.comment && !t?.markedAsUnproductiveByUser) {
+              return <span />;
+            }
+            return <MessageSquareText className="size-4" />;
+          }
+
           return (
             <TableRow key={t.id}>
               <TableCell>{formatDate(new Date(t.updatedAt), DATE_FORMATS.ddMMyyyy)}</TableCell>
@@ -82,20 +97,26 @@ export function TasksTable({ tasks, handleResumeTask, description, readonly = fa
                   </Tooltip>
                 </TooltipProvider>
               </TableCell>
+
               <TableCell className="text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <MessageSquareText size="20" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t.comment}</p>
-                      {t.markedAsUnproductiveByUser ? (
-                        <p>{t.markedAsUnproductiveByUser.name} te ha marcado esta tarea como no productiva</p>
-                      ) : null}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <div className="max-w-[200px]">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="truncate w-full">{renderComment()}</div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t?.comment}</p>
+                        {t?.markedAsUnproductiveByUser && (
+                          <p>
+                            {t.markedAsUnproductiveByUser.name} te ha marcado
+                            esta tarea como no productiva
+                          </p>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </TableCell>
               <TableCell>{actions(t)}</TableCell>
             </TableRow>

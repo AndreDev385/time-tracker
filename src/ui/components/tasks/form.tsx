@@ -45,6 +45,7 @@ export function TasksForm({ inToolbar = true }: Props) {
 
 
   function handleSubmitTask(createTaskFormData: CreateTaskFormData, confirmation: boolean = false) {
+    console.log(createTaskFormData, confirmation)
     if (confirmation) {
       window.electron.createTaskSubmit(createTaskFormData)
     } else {

@@ -22,7 +22,7 @@ export function StepsTaskForm({
     {
       message: "No tienes projectos assignados",
       options: createTaskInfo.projects,
-      setSelected: (id: number) => {
+      setSelected: (id: string) => {
         setSelectedValues([...selectedValues, createTaskInfo.projects.find(p => p.id === id)!.name as string])
         onFormStateChange("selectedProject", id)
         onFormStateChange("step", 1)
@@ -31,7 +31,7 @@ export function StepsTaskForm({
     {
       message: "No hay tipos de trabajo registrados",
       options: createTaskInfo.workTypes,
-      setSelected: (id: number) => {
+      setSelected: (id: string) => {
         setSelectedValues([...selectedValues, createTaskInfo.workTypes.find(wt => wt.id === id)!.name as string])
         onFormStateChange("selectedWorkType", id)
         onFormStateChange("step", 2)
@@ -43,7 +43,7 @@ export function StepsTaskForm({
         const workType = createTaskInfo.workTypes.find(wt => formState.selectedWorkType === wt.id)
         return workType?.taskTypes.includes(tp.id)
       }),
-      setSelected: (id: number) => {
+      setSelected: (id: string) => {
         // validate recordId
         if (formState.recordId.trim() === "") {
           setRecordIdError("Debe ingresar un expediente")
@@ -58,16 +58,16 @@ export function StepsTaskForm({
     {
       message: "No hay empresas registradas",
       options: createTaskInfo.business,
-      setSelected: (id: number) => {
+      setSelected: (id: string) => {
         const workType = createTaskInfo.workTypes.find(wt => formState.selectedWorkType === wt.id)
         if (workType?.recordTypes.length === 0) {
           handleSubmitTask({
             userId: user.id,
-            projectId: Number(formState.selectedProject),
-            workTypeId: Number(formState.selectedWorkType),
+            projectId: formState.selectedProject as string,
+            workTypeId: formState.selectedWorkType as string,
             recordId: formState.recordId,
-            taskTypeId: Number(formState.selectedTaskType),
-            businessId: Number(id),
+            taskTypeId: formState.selectedTaskType as string,
+            businessId: id as string,
           })
           return
         }
@@ -82,16 +82,16 @@ export function StepsTaskForm({
         const workType = createTaskInfo.workTypes.find(wt => formState.selectedWorkType === wt.id)
         return workType?.recordTypes.includes(rt.id)
       }),
-      setSelected: (id: number) => {
+      setSelected: (id: string) => {
         onFormStateChange("selectedRecordType", id)
         handleSubmitTask({
           userId: user.id,
-          projectId: Number(formState.selectedProject),
-          workTypeId: Number(formState.selectedWorkType),
+          projectId: formState.selectedProject!,
+          workTypeId: formState.selectedWorkType!,
           recordId: formState.recordId,
-          taskTypeId: Number(formState.selectedTaskType),
-          businessId: Number(formState.selectedBusiness),
-          recordTypeId: formState.selectedRecordType ? Number(formState.selectedRecordType) : id
+          taskTypeId: formState.selectedTaskType!,
+          businessId: formState.selectedBusiness!,
+          recordTypeId: formState.selectedRecordType ? formState.selectedRecordType! : id
         })
       }
     },

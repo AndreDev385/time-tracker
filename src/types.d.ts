@@ -20,16 +20,16 @@ type SignInResult = {
 // CreateTask
 type CreateTaskFormData = {
   userId: string
-  projectId: number;
-  businessId: number;
-  taskTypeId: number;
-  recordTypeId?: number;
-  workTypeId: number;
+  projectId: string;
+  businessId: string;
+  taskTypeId: string;
+  recordTypeId?: string;
+  workTypeId: string;
   recordId: string;
 }
 
 type CreateOtherTaskData = {
-  userId: number
+  userId: string
   comment: string;
   defaultOptionId?: number
 }
@@ -39,16 +39,16 @@ type JWTTokenData = {
   name: string,
   email: string,
   role: string,
-  assignedProjects: number[],
+  assignedProjects: string[],
 }
 
-type Journey = { startAt: Date, id: number, endAt: Date | null }
-type Project = { id: number, name: string }
-type Business = { id: number, name: string }
-type TaskType = { id: number, name: string }
-type RecordType = { id: number, name: string }
-type WorkType = { id: number, name: string, taskTypes: number[], recordTypes: number[] }
-type OtherTaskOption = { id: number, value: string }
+type Journey = { startAt: Date, id: string, endAt: Date | null }
+type Project = { id: string, name: string }
+type Business = { id: string, name: string }
+type TaskType = { id: string, name: string }
+type RecordType = { id: string, name: string }
+type WorkType = { id: string, name: string, taskTypes: string[], recordTypes: string[] }
+type OtherTaskOption = { id: string, value: string }
 
 type CreateTaskInfo = {
   projects: Project[]
@@ -67,14 +67,14 @@ type Interval = {
 type TaskStatus = "pending" | "canceled" | "solved" | "paused"
 
 type Task = {
-  id: number
-  userId: number
-  projectId: number
-  businessId: number
-  taskTypeId: number
-  recordTypeId: number
-  workTypeId: number
-  recordId: number
+  id: string
+  userId: string
+  projectId: string
+  businessId: string
+  taskTypeId: string
+  recordTypeId: string
+  workTypeId: string
+  recordId: string
   intervals: Interval[]
   comment: string
   status: TaskStatus
@@ -87,11 +87,12 @@ type Task = {
 }
 
 type OtherTask = {
-  id: number
-  userId: number
+  id: string
+  userId: string
   defaultOptionId?: number
   comment: string
-  intervals: Interval[]
+  startAt: Date
+  endAt: Date | null
   status: TaskStatus
   updatedAt: string;
 }
@@ -115,16 +116,17 @@ interface Window {
 
     startJourney: () => void
     startJourneyResult: (callback: (data: { journey: Journey } & SuccessResponse | ErrorResponse) => void) => void
-    endJourney: (id: number) => void
+    endJourney: (id: string) => void
     endJourneyResult: (
       callback: (data: { journey: Journey } & SuccessResponse | ErrorResponse) => void
     ) => void
+    loadJourney: () => Promise<({ journey: Journey } & SuccessResponse) | ErrorResponse>
 
     getCreateTaskInfo: () => Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
     checkTaskCollision: (data: CreateTaskFormData) => void;
     checkTaskCollisionResult: (
-      callback: (data: { collision: boolean, creationData: CreateTaskFormData } & SuccessResponse) => void
+      callback: (data: { collision: boolean, creationData: CreateTaskFormData, data?: { user: string, taskType: string } } & SuccessResponse) => void
     ) => void,
 
     createTaskSubmit: (data: CreateTaskFormData) => void
@@ -160,7 +162,7 @@ interface Window {
       callback: (data: SuccessResponse | ErrorResponse) => void
     ) => void
 
-    getToolbarTask: () => Promise<({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse>
+    getCurrTask: () => Promise<({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse>
     reloadToolbarData: (callback: (data: { task?: Task | OtherTask } & SuccessResponse | ErrorResponse) => void) => void
 
     openMainWindow: () => void
@@ -196,13 +198,20 @@ type EventPayloadMapping = {
 
   startJourney: void
   startJourneyResult: { journey: Journey } & SuccessResponse | ErrorResponse
-  endJourney: number
+  endJourney: string
   endJourneyResult: { journey: Journey } & SuccessResponse | ErrorResponse
+  loadJourney: Promise<({ journey: Journey } & SuccessResponse) | ErrorResponse>
+
 
   getCreateTaskInfo: Promise<(CreateTaskInfo & SuccessResponse) | ErrorResponse>
 
   checkTaskCollision: CreateTaskFormData
-  checkTaskCollisionResult: { collision: boolean, creationData: CreateTaskFormData } & SuccessResponse
+  checkTaskCollisionResult: {
+    collision: boolean, creationData: CreateTaskFormData, data?: {
+      user: string,
+      taskType: string,
+    }
+  } & SuccessResponse
 
   createTaskSubmit: CreateTaskFormData
   createTaskResult: { task: Task } & SuccessResponse | ErrorResponse
@@ -223,7 +232,7 @@ type EventPayloadMapping = {
   completeTaskResult: SuccessResponse | ErrorResponse
   completeOtherTaskResult: SuccessResponse | ErrorResponse
 
-  getToolbarTask: Promise<({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse>
+  getCurrTask: Promise<({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse>
   reloadToolbarData: { task?: Task | OtherTask } & SuccessResponse | ErrorResponse
 
   openMainWindow: void

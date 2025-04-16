@@ -2,7 +2,14 @@ import { net } from "electron"
 import { readToken } from "../../lib/jwt.js"
 import { API_URL } from "../config.js"
 
-export async function checkTaskCollision(data: CreateTaskFormData): Promise<{ collision: boolean } & SuccessResponse | ErrorResponse> {
+export async function checkTaskCollision(data: CreateTaskFormData): Promise<({
+	collision: false,
+} | {
+	collision: true, data: {
+		taskType: string
+		user: string
+	}
+}) & SuccessResponse | ErrorResponse> {
 	try {
 		const token = readToken()?.token
 

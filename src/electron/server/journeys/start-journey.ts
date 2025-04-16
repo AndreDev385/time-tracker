@@ -1,4 +1,5 @@
 import { net } from "electron";
+import { v4 } from 'uuid'
 
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
@@ -8,6 +9,9 @@ export async function startJourney(): Promise<{ journey: Journey } & SuccessResp
 		const token = readToken()?.token
 		const response = await net.fetch(`${API_URL}/journeys`, {
 			method: "POST",
+			body: JSON.stringify({
+				id: v4().toString()
+			}),
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: token ? `Bearer ${token}` : "",

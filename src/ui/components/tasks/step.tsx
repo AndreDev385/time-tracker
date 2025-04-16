@@ -19,6 +19,6 @@ export function Step({ options, setSelected, message }: StepProps) {
 
 type StepProps = {
   message: string
-  options: { id: number, name: string }[]
-  setSelected: (id: number) => void
+  options: { id: string, name: string }[]
+  setSelected: (id: string) => void
 }

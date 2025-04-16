@@ -10,10 +10,9 @@ export function CollisionModal({
     <Dialog open={state.open} onOpenChange={(open: boolean) => setState({ open })}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Este expediente ya existe</DialogTitle>
+          <DialogTitle>Expediente ya realizado!</DialogTitle>
           <DialogDescription>
-            Si continuas el tiempo dedicado a este expediente por el usuario anterior sera marcado como no productivo.
-            Estas seguro que quieres continuar?
+            El usuario <strong>{state.user}</strong> ya ha creado este expediente con la tarea <strong>"{state.taskType}"</strong>! Si continuas se le cambiara el tiempo dedicado de <strong>"PRODUCTIVO"</strong> a <strong>"NO PRODUCTIVO"</strong> ¿Estás seguro que deseas continuar?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -39,7 +38,7 @@ export function CollisionModal({
 }
 
 type Props = {
-  state: { open: boolean }
+  state: { open: boolean, user: string, taskType: string }
   setState: (value: { open: boolean }) => void
   submit: () => void
 }

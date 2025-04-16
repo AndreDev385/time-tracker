@@ -30,10 +30,10 @@ app.on("ready", function() {
 	const mainWindow = createWindow(
 		isDev() ? "http://localhost:5123" : getMainUIPath(),
 		{
-			width: 1000,
+			width: 1280,
 			minWidth: 1000,
-			height: 500,
-			minHeight: 500,
+			height: 800,
+			minHeight: 800,
 			webPreferences: {
 				preload: getPreloadPath()
 			},
@@ -44,8 +44,9 @@ app.on("ready", function() {
 		{
 			width: 700,
 			minWidth: 600,
-			height: 45,
-			minHeight: 45,
+			height: 30,
+			minHeight: 30,
+			maxHeight: 30,
 			titleBarStyle: "hidden",
 			frame: false,
 			skipTaskbar: true,
@@ -79,6 +80,7 @@ app.on("ready", function() {
 
 	ipcMainHandle('getCreateTaskInfo', () => getCreateTaskInfo())
 
+	ipcMainHandle("loadJourney", () => getActualJourney())
 	ipcMainOn("startJourney", async () => {
 		const result = await startJourney()
 		if (result.success) {
@@ -88,7 +90,7 @@ app.on("ready", function() {
 		ipcWebContentsSend("startJourneyResult", toolbarWindow.webContents, result)
 	})
 
-	ipcMainOn("endJourney", async (journeyId: number) => {
+	ipcMainOn("endJourney", async (journeyId: string) => {
 		const result = await endJourney(journeyId)
 		if (result.success) {
 			activeJourney = null
@@ -96,6 +98,8 @@ app.on("ready", function() {
 		}
 		ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
 		ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
+		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+		ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
 	})
 
 	ipcMainOn("checkTaskCollision", async (data) => {
@@ -109,6 +113,7 @@ app.on("ready", function() {
 			const result = await createTask(data);
 			ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
 			ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+			ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
 			return
 		}
 		// There's a collision ask if wants to continue
@@ -120,6 +125,7 @@ app.on("ready", function() {
 	ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
 		const result = await createTask(data);
 		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result)
+		ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
 		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
 	})
 
@@ -164,7 +170,7 @@ app.on("ready", function() {
 		ipcWebContentsSend("reloadTodaysTasks", mainWindow.webContents, await todayCompletedTasks())
 	})
 
-	ipcMainHandle('getToolbarTask', () => getCurrTask())
+	ipcMainHandle('getCurrTask', () => getCurrTask())
 
 	ipcMainOn("openMainWindow", () => {
 		showWindow(mainWindow, app)
@@ -240,6 +246,7 @@ app.on("ready", function() {
 
 	/* System shutdown */
 	if (platform === "win32" || platform === "linux") {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(powerMonitor as PowerMonitor).on('shutdown', async (e: any) => {
 			if (activeJourney) {
 				e.preventDefault()
@@ -252,6 +259,8 @@ app.on("ready", function() {
 				activeJourney = null;
 				ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
 				ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
+				ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
+				ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
 				app.quit()
 			}
 		});

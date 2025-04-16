@@ -1,7 +1,7 @@
 import { net } from 'electron'
 import { API_URL } from './config.js'
 
-export async function getOtherTaskOptions(): Promise<{ options: { id: number, value: string }[] } & SuccessResponse | ErrorResponse> {
+export async function getOtherTaskOptions(): Promise<{ options: { id: string, value: string }[] } & SuccessResponse | ErrorResponse> {
 	try {
 		const response = await net.fetch(`${API_URL}/other-task-options`, {
 			method: "GET",

@@ -1,4 +1,6 @@
 import { net } from 'electron'
+import { v4 } from "uuid"
+
 import { API_URL } from '../config.js'
 import { readToken } from '../../lib/jwt.js'
 import { mapIntervalsStringToDate } from '../../lib/map-intervals.js'
@@ -8,7 +10,7 @@ export async function createTask(data: CreateTaskFormData): Promise<{ task: Task
 		const token = readToken()?.token
 		const response = await net.fetch(`${API_URL}/tasks`, {
 			method: "POST",
-			body: JSON.stringify(data),
+			body: JSON.stringify({ ...data, id: v4() }),
 			headers: {
 				"Content-Type": "application/json",
 				"Authorization": token ? `Bearer ${token}` : ""

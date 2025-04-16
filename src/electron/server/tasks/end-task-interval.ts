@@ -25,9 +25,6 @@ async function endTaskInterval(
 			}),
 		})
 
-		const json = await response.json()
-		console.log({ json, code: response.status })
-
 		if (!response.ok) {
 			return { success: false, error: "Ha ocurrido un error" }
 		}

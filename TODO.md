@@ -9,9 +9,12 @@
 - [x] Add `interval[0].startAt` - `interval[last].endAt` | `Duration` and `commnet` in completed task
 - [x] Move pending tasks and completed tasks of the day to the journey layout
   - [x] Add readonly property to task table
-- [ ] update toolbar journey 
+- [x] update toolbar journey 
 - [ ] Change collision message
   - [ ] Send `taskType.name` and `user.name` from the API response 
+- [x] update task table like in the web page
+- [ ] Don't expand vertically the toolbar
+
 ```text
 Expediente ya realizado!
 

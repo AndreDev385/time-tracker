@@ -2,7 +2,7 @@ import { net } from "electron"
 import { readToken } from "../../lib/jwt.js"
 import { API_URL } from "../config.js"
 
-export async function endJourney(journeyId: number): Promise<{ journey: Journey } & SuccessResponse | ErrorResponse> {
+export async function endJourney(journeyId: string): Promise<{ journey: Journey } & SuccessResponse | ErrorResponse> {
 	try {
 		const token = readToken()?.token
 		const response = await net.fetch(`${API_URL}/journeys`, {

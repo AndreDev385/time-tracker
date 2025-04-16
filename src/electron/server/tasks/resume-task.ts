@@ -18,6 +18,7 @@ export async function resumeTask(taskId: Task['id']): Promise<{ task: Task } & S
 		})
 
 		const json = await response.json()
+		console.log({ json, ok: response.ok })
 		if (!response.ok) {
 			return { success: false, error: "Ha ocurrido un error" }
 		}

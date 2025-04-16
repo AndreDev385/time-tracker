@@ -20,13 +20,11 @@ export function OtherTasksTable({
         {otherTasks.map(t => {
           return (
             <TableRow key={t.id}>
-              <TableCell>{formatDate(new Date(t.updatedAt), DATE_FORMATS.ddMMyyyy)}</TableCell>
+              <TableCell>{formatDate(new Date(t.endAt!), DATE_FORMATS.ddMMyyyy)}</TableCell>
               <TableCell>{t.comment}</TableCell>
               <TableCell>
-                <p
-                  key={t.intervals[0].startAt.getTime()}
-                >
-                  {formatDate(t.intervals[0].startAt, DATE_FORMATS.hmma)} - {formatDate(t.intervals[0].endAt!, DATE_FORMATS.hmma)}
+                <p>
+                  {formatDate(t.startAt, DATE_FORMATS.hmma)} - {formatDate(t.endAt!, DATE_FORMATS.hmma)}
                 </p>
               </TableCell>
               <TableCell className="flex justify-end">{t.status === "solved" ? <Check color="green" /> : <X color="red" />}</TableCell>

@@ -31,7 +31,7 @@ electron.contextBridge.exposeInMainWorld('electron', {
 			callback(data)
 		})
 	},
-	endJourney: (id: number) => {
+	endJourney: (id: string) => {
 		ipcSend('endJourney', id);
 	},
 	endJourneyResult: (callback) => {
@@ -39,6 +39,7 @@ electron.contextBridge.exposeInMainWorld('electron', {
 			callback(data)
 		})
 	},
+	loadJourney: async () => await ipcInvoke("loadJourney"),
 
 	getCreateTaskInfo: async () => await ipcInvoke("getCreateTaskInfo"),
 
@@ -110,7 +111,7 @@ electron.contextBridge.exposeInMainWorld('electron', {
 		})
 	},
 
-	getToolbarTask: async () => await ipcInvoke("getToolbarTask"),
+	getCurrTask: async () => await ipcInvoke("getCurrTask"),
 	reloadToolbarData: (callback) => {
 		ipcOn('reloadToolbarData', (data) => {
 			callback(data)

@@ -22,6 +22,15 @@ export function InProgressTask() {
     value: "",
   })
 
+  React.useEffect(() => {
+    window.electron.getCurrTask().then((data) => {
+      console.log({ data }, 'in progress task')
+      if (!data.success) {
+        navigate(ROUTES.journey)
+      }
+    })
+  }, [])
+
   function handlePauseTask(taskId: Task['id']) {
     window.electron.pauseTask({ taskId })
     setLoading(true)

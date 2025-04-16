@@ -22,10 +22,12 @@ export function JourneyLayout() {
   const [pausedTasks, setPausedTasks] = React.useState<Task[]>([])
   const [otherTasks, setOtherTasks] = React.useState<OtherTask[]>([])
 
-  React.useEffect(function loadJourney() {
-    const journey = LocalStorage().getItem("journey")
-    if (!journey) return
-    setJourney({ id: journey.id, startAt: new Date(journey.startAt) })
+  React.useEffect(() => {
+    window.electron.loadJourney().then((data) => {
+      if (data.success) {
+        setJourney(data.journey)
+      }
+    })
   }, [])
 
   function handleStartJourney() {
@@ -129,7 +131,7 @@ export function JourneyLayout() {
 
   return (
     <div className="flex h-full justify-center items-center">
-      <Tabs defaultValue="default" className="w-full max-w-4xl py-8 px-2">
+      <Tabs defaultValue="default" className="w-full max-w-6xl py-8 px-2">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="default">Zona de trabajo</TabsTrigger>
           <TabsTrigger value="history">Historial</TabsTrigger>

@@ -25,16 +25,12 @@ export function Toolbar() {
     value: "",
   })
 
-  React.useEffect(function loadJourney() {
-    const interval = setInterval(() => {
-      const journey = LocalStorage().getItem("journey")
-      if (journey) {
-        setJourney(journey)
-        clearInterval(interval)
+  React.useEffect(() => {
+    window.electron.loadJourney().then((data) => {
+      if (data.success) {
+        setJourney(data.journey)
       }
-    }, 100); // Check every 100ms (adjust as needed)
-
-    return () => clearInterval(interval); // Cleanup on unmount
+    })
   }, [])
 
   React.useEffect(function startJourneyResult() {
@@ -101,7 +97,7 @@ export function Toolbar() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-start justify-center">
+      <div className="h-dvh flex items-center justify-center">
         <Loader2 className='animate-spin' />
       </div>
     )
@@ -109,7 +105,7 @@ export function Toolbar() {
 
   if (!journey) {
     return (
-      <div className='flex items-center justify-center'>
+      <div className='h-dvh flex items-center justify-center'>
         <p>Inicia una jornada</p>
       </div>
     )
@@ -188,7 +184,7 @@ function Wrapper({ children, journey }: {
   }
 }) {
   return (
-    <div className="h-full flex items-center justify-between pr-2">
+    <div className="h-dvh flex items-center justify-between pr-2">
       <Draggable />
       <SmallJourneyTimer journey={journey} />
       <div className="flex items-center justify-between w-full overflow-x-hidden">
