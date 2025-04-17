@@ -53,7 +53,7 @@ export function taskDuration(intervals: Interval[]): string {
   return millisecondsToHHMM(duration)
 }
 
-function distanceInMilliseconds(value: { startAt: Date, endAt: Date }): number {
+export function distanceInMilliseconds(value: { startAt: Date, endAt: Date }): number {
   return differenceInMilliseconds(value.endAt, value.startAt)
 }
 
@@ -64,7 +64,7 @@ function intervalDistanceInMilliseconds(interval: Interval) {
   return distanceInMilliseconds({ startAt: interval.startAt, endAt: interval.endAt })
 }
 
-function millisecondsToHHMM(value: number): string {
+export function millisecondsToHHMM(value: number): string {
   const totalSeconds = Math.floor(value / 1000);
 
   const hours = Math.floor(totalSeconds / 3600);

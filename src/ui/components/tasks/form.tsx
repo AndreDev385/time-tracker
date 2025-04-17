@@ -95,7 +95,7 @@ export type FormState = {
 
 export type OtherTaskFormState = {
   label: string
-  defaultOption: number | undefined
+  defaultOption: string | undefined
   comment: string
   show: boolean
   custom: boolean

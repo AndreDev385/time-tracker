@@ -15,7 +15,7 @@ export function OtherTaskForm({
   setLoading,
 }: Props) {
 
-  function handleSubmitOtherTask(comment: string, defaultOptionId?: number) {
+  function handleSubmitOtherTask(comment: string, defaultOptionId?: string) {
     setLoading(true)
     window.electron.createOtherTaskSubmit({
       userId,
@@ -103,5 +103,5 @@ type Props = {
   setOtherTaskForm: React.Dispatch<React.SetStateAction<OtherTaskFormState>>
   options: CreateTaskInfo["otherTaskOptions"]
   initialState: OtherTaskFormState
-  userId: number
+  userId: string
 }

@@ -1,5 +1,5 @@
 import { formatDate } from "date-fns";
-import { DATE_FORMATS, taskDuration } from "../../lib/utils";
+import { DATE_FORMATS, distanceInMilliseconds, millisecondsToHHMM } from "../../lib/utils";
 
 export function FinishedOtherTask({ task, displayFullDate }: Props) {
 
@@ -8,15 +8,12 @@ export function FinishedOtherTask({ task, displayFullDate }: Props) {
   return (
     <div className="p-4 border border-gray-300 rounded-lg">
       <div className="flex">
-        {task.intervals.map(interval => (
           <p
-            key={interval.startAt.getTime()}
             className={textStyle}
           >
-            {formatDate(interval.startAt, format)} - {formatDate(interval.endAt!, format)}
+            {formatDate(task.startAt, format)} - {formatDate(task.endAt!, format)}
           </p>
-        ))}
-        <p className={textStyle}>{taskDuration(task.intervals)}</p>
+        <p className={textStyle}>{millisecondsToHHMM(distanceInMilliseconds({ startAt: task.startAt, endAt: task.endAt! }))}</p>
       </div>
     </div>
   )

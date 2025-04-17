@@ -31,7 +31,7 @@ type CreateTaskFormData = {
 type CreateOtherTaskData = {
   userId: string
   comment: string;
-  defaultOptionId?: number
+  defaultOptionId?: string
 }
 
 type JWTTokenData = {
