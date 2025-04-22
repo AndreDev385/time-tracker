@@ -7,6 +7,7 @@ export async function checkTaskCollision(data: CreateTaskFormData): Promise<({
 } | {
 	collision: true, data: {
 		taskType: string
+		taskStatus: Task['status']
 		user: string
 	}
 }) & SuccessResponse | ErrorResponse> {
