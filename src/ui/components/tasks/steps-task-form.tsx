@@ -46,7 +46,7 @@ export function StepsTaskForm({
       setSelected: (id: string) => {
         // validate recordId
         if (formState.recordId.trim() === "") {
-          setRecordIdError("Debe ingresar un expediente")
+          setRecordIdError("Debe ingresar un ID de tarea")
           return
         } else setRecordIdError("")
         // 
@@ -146,7 +146,7 @@ export function StepsTaskForm({
             onChange={(e) => onFormStateChange("recordId", e.target.value)}
             name="recordId"
             className={`w-44 ${recordIdError && "border-red-500"}`}
-            placeholder="Expediente"
+            placeholder="ID de tarea"
           />
           <Step {...steps[step]} />
           <div>

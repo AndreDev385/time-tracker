@@ -2,7 +2,7 @@ import { S3Client, PutObjectCommand, ListBucketsCommand } from "@aws-sdk/client-
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { net } from "electron";
 
-const BUCKET_NAME = "time-tracker"
+const BUCKET_NAME = "time-tracker-bucket"
 const REGION = "us-east-005"
 
 const s3Client = new S3Client({
@@ -23,20 +23,12 @@ async function generateUploadUrl(file: File) {
 		ContentType: file.type,
 	});
 
-	try {
-		return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-	} catch (error) {
-		console.error("Signing Error Details:", error);
-	}
+	return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
 export async function testCredentials() {
-	try {
-		await s3Client.send(new ListBucketsCommand({}));
-		console.log("Credentials are valid!");
-	} catch (error) {
-		console.error("Credential Test Failed:", error);
-	}
+	await s3Client.send(new ListBucketsCommand({}));
+	console.log("Credentials are valid!");
 }
 
 function dataURLtoFile(dataurl: string, filename: string) {

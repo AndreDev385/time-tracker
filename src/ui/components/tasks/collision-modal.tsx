@@ -15,7 +15,7 @@ export function CollisionModal({
     <Dialog open={state.open} onOpenChange={(open: boolean) => setState({ open })}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Expediente ya realizado!</DialogTitle>
+          <DialogTitle>{state.taskStatus === "canceled" ? "Este expediente ha sido visto" : "Expediente ya realizado!"}</DialogTitle>
           <DialogDescription>
             {state.taskStatus === "canceled" ? cancelledTaskMessage : standarMessage}
           </DialogDescription>
@@ -43,7 +43,7 @@ export function CollisionModal({
 }
 
 type Props = {
-  state: { open: boolean, user: string, taskType: string, taskStatus: Task['status'] }
+  state: { open: boolean, user: string, taskType: string, taskStatus: Task['status'] | undefined }
   setState: (value: { open: boolean }) => void
   submit: () => void
 }

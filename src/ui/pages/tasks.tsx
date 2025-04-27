@@ -17,11 +17,13 @@ export function TasksPage() {
     open: boolean,
     user: string,
     taskType: string;
+    taskStatus: Task['status'] | undefined;
     data: CreateTaskFormData | null,
   }>({
     open: false,
     user: "",
     taskType: "",
+    taskStatus: undefined,
     data: null
   })
 
@@ -67,6 +69,7 @@ export function TasksPage() {
       if (data.success) {
         setCollisionModal({
           taskType: data.data?.taskType ?? "",
+          taskStatus: data.data!.taskStatus!,
           data: data.creationData,
           user: data.data?.user ?? "",
           open: data.collision,

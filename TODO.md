@@ -1,8 +1,8 @@
 # TODO
-- [ ] Take screenshots of the main screen
+- [x] Take screenshots of the main screen
   - [x] Test it 
   - [x] `Backblaze` upload
-  - [ ] configure ipc to capture the screenshot every x time
+  - [x] configure ipc to capture the screenshot every x time
 - [ ] Journey, add total by date
 
 ## pending
@@ -10,10 +10,10 @@
 - [x] Move pending tasks and completed tasks of the day to the journey layout
   - [x] Add readonly property to task table
 - [x] update toolbar journey 
-- [ ] Change collision message
-  - [ ] Send `taskType.name` and `user.name` from the API response 
+- [x] Change collision message
+  - [x] Send `taskType.name` and `user.name` from the API response 
 - [x] update task table like in the web page
-- [ ] Don't expand vertically the toolbar
+- [x] Don't expand vertically the toolbar
 
 ```text
 Expediente ya realizado!
