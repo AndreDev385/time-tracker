@@ -10,6 +10,7 @@ import { Draggable } from './draggable';
 import { SmallJourneyTimer } from './small-journey-timer';
 import { TasksForm } from '../components/tasks/form';
 import { OpenMainWindow } from './open-main-window-button';
+import { PlayIcon } from '@heroicons/react/24/solid';
 
 export function Toolbar() {
   const [journey, setJourney] = React.useState<{
@@ -36,6 +37,7 @@ export function Toolbar() {
   React.useEffect(function startJourneyResult() {
     return window.electron.startJourneyResult((data) => {
       if (data.success) {
+        setLoading(false)
         setJourney(data.journey)
       }
     })
@@ -86,6 +88,11 @@ export function Toolbar() {
     setLoading(true)
   }
 
+  function handleStartJourney() {
+    setLoading(true)
+    window.electron.startJourney()
+  }
+
   function handleFinish() {
     if (comment.action === "solved") {
       handleCompleteTask(currTask!.id, false, comment.value)
@@ -106,7 +113,21 @@ export function Toolbar() {
   if (!journey) {
     return (
       <div className='h-dvh flex items-center justify-center'>
-        <p>Inicia una jornada</p>
+        <Button
+          name="intent"
+          value="start-journey"
+          variant="ghost"
+          onMouseDown={handleStartJourney}
+        >
+          {
+            loading ? (
+              <Loader2 className="animate-spin ml-2" />
+            ) : (
+              <PlayIcon color="green" className="size-6" />
+            )
+          }
+          Iniciar jornada
+        </Button>
       </div>
     )
   }
