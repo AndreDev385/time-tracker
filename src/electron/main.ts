@@ -1,5 +1,4 @@
 import { app, BrowserWindow, powerMonitor } from 'electron'
-import { platform } from "process"
 import { secondsToMilliseconds } from 'date-fns'
 
 import { isDev, SETTINGS } from './lib/utils.js'
@@ -29,7 +28,14 @@ import { getTaskHistory } from './server/tasks/paginate-task-history.js'
 import { saveUserCaptures } from './server/save-user-capture.js'
 import { secondsInMinute } from 'date-fns/constants'
 
-app.on("ready", function() {
+let activeJourney: Journey | null = null;
+
+app.on("ready", async function() {
+
+	app.setLoginItemSettings({
+		openAtLogin: true
+	})
+
 	const mainWindow = createWindow(
 		isDev() ? "http://localhost:5123" : getMainUIPath(),
 		{
@@ -58,9 +64,8 @@ app.on("ready", function() {
 				contextIsolation: true,
 				preload: getPreloadPath()
 			}
-		}, false)
+		}, true)
 
-	let activeJourney: Journey | null = null;
 
 	async function checkJourney() {
 		const result = await getActualJourney()
@@ -293,45 +298,10 @@ app.on("ready", function() {
 	}
 
 	initializeIdleMonitor()
-
-	/* System shutdown */
-	if (platform === "win32" || platform === "linux") {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(powerMonitor as PowerMonitor).on('shutdown', async (e: any) => {
-			if (activeJourney) {
-				e.preventDefault()
-				// call finish journey and tasks 
-				const result = await endJourney(activeJourney.id)
-				if (!result.success) {
-					app.quit()
-					return
-				}
-				activeJourney = null;
-				ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
-				ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
-				ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result)
-				ipcWebContentsSend("reloadPausedTasks", mainWindow.webContents, await getMyTasks(['paused']))
-				app.quit()
-			}
-		});
-	}
-
-	app.on("before-quit", async (e) => {
-		if (activeJourney) {
-			e.preventDefault()
-			// call finish journey and tasks 
-			const result = await endJourney(activeJourney.id)
-			if (!result.success) {
-				app.quit()
-				return
-			}
-			activeJourney = null;
-			ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result)
-			ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result)
-			app.quit()
-		}
-	})
 })
 
-
-type PowerMonitor = typeof powerMonitor & { on(event: 'shutdown', listener: (e: unknown) => void): void }
+app.on("window-all-closed", () => {
+	if (activeJourney) {
+		endJourney(activeJourney.id)
+	}
+})
