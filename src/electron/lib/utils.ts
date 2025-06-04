@@ -1,12 +1,13 @@
-import { WebFrameMain } from 'electron';
-import { config } from '../config.js';
+import type { WebFrameMain } from "electron";
+import { config } from "../config.js";
 
 export function isDev(): boolean {
-	return config.nodeEnv === 'development';
+	return config.nodeEnv === "development";
 }
 
-export function validateEventFrame(frame: WebFrameMain) {
-	if (isDev() && new URL(frame.url).host === 'localhost:5123') {
+export function validateEventFrame(frame: WebFrameMain | null) {
+	if (!frame) return;
+	if (isDev() && new URL(frame.url).host === "localhost:5123") {
 		return;
 	}
 }

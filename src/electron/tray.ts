@@ -1,23 +1,23 @@
-import { BrowserWindow, Menu, Tray, app } from 'electron';
-import { getAssetPath } from './lib/path-resolver.js';
-import path from 'path';
+import { type BrowserWindow, Menu, Tray, app } from "electron";
+import { getAssetPath } from "./lib/path-resolver.js";
+import path from "node:path";
 
-export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWindow, actualJourney: boolean) {
-	const tray = new Tray(
-		path.join(
-			getAssetPath(), 'reloj.png'
-		)
-	);
+export function createTray(
+	mainWindow: BrowserWindow,
+	toolbarWindow: BrowserWindow,
+	actualJourney: boolean,
+) {
+	const tray = new Tray(path.join(getAssetPath(), "reloj.png"));
 
 	tray.setContextMenu(
 		Menu.buildFromTemplate([
 			{
-				label: 'Principal',
+				label: "Principal",
 				click: () => {
 					if (mainWindow.isVisible()) {
-						mainWindow.hide()
+						mainWindow.hide();
 						if (app.dock) {
-							app.dock.hide()
+							app.dock.hide();
 						}
 					} else {
 						mainWindow.show();
@@ -28,7 +28,7 @@ export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWind
 				},
 			},
 			{
-				label: 'Toolbar',
+				label: "Toolbar",
 				enabled: !actualJourney,
 				click: () => {
 					if (toolbarWindow.isVisible()) {
@@ -39,14 +39,14 @@ export function createTray(mainWindow: BrowserWindow, toolbarWindow: BrowserWind
 				},
 			},
 			{
-				label: 'Salir',
+				label: "Salir",
 				click: () => {
 					if (app.dock) {
-						app.dock.hide()
+						app.dock.hide();
 					}
-					app.quit()
+					app.quit();
 				},
 			},
-		])
+		]),
 	);
 }

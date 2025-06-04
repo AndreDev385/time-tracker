@@ -1,53 +1,54 @@
-import React from "react"
-import { displayMessage } from "../lib/utils"
-import { useLocation, useNavigate } from "react-router"
-import { ActiveOtherTask } from "../components/tasks/active-other-task"
-import { ROUTES } from "../main"
-import { LocalStorage } from "../storage"
+import React, { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { ActiveOtherTask } from "../components/tasks/active-other-task";
+import { displayMessage } from "../lib/utils";
+import { ROUTES } from "../main";
+import { LocalStorage } from "../storage";
 
 export function InProgressOtherTask() {
-  const navigate = useNavigate()
-  const { state } = useLocation()
+	const navigate = useNavigate();
+	const { state } = useLocation();
 
-  const otherTask = state?.otherTask as OtherTask
+	const otherTask = state?.otherTask as OtherTask;
 
-  const [loading, setLoading] = React.useState(false)
+	const [loading, setLoading] = React.useState(false);
 
-  function handleCompleteTask(taskId: Task['id']) {
-    window.electron.completeTask({ taskId, isOtherTask: true })
-    setLoading(true)
-  }
+	function handleCompleteTask(taskId: Task["id"]) {
+		window.electron.completeTask({ taskId, isOtherTask: true });
+		setLoading(true);
+	}
 
-  React.useEffect(() => {
-    window.electron.getCurrTask().then((data) => {
-      if (!data.success) {
-        navigate(ROUTES.journey)
-      }
-    })
-  }, [])
+	useEffect(() => {
+		window.electron.getCurrTask().then((data) => {
+			if (!data.success) {
+				navigate(ROUTES.journey);
+			}
+		});
+	}, [navigate]);
 
-  React.useEffect(function completeTaskResponse() {
-    return window.electron.completeOtherTaskResult((data) => {
-      setLoading(false)
-      if (data.success) {
-        displayMessage("La tarea se ha completado", "success")
-        LocalStorage().removeItem("currTask")
-        navigate(ROUTES.journey)
-      } else {
-        displayMessage(data.error, "error")
-      }
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+	useEffect(
+		function completeTaskResponse() {
+			return window.electron.completeOtherTaskResult((data) => {
+				setLoading(false);
+				if (data.success) {
+					displayMessage("La tarea se ha completado", "success");
+					LocalStorage().removeItem("currTask");
+					navigate(ROUTES.journey);
+				} else {
+					displayMessage(data.error, "error");
+				}
+			});
+		},
+		[navigate],
+	);
 
-  return (
-
-    <div className="border border-gray-300 rounded-lg p-4">
-      <ActiveOtherTask
-        otherTask={otherTask}
-        loading={loading}
-        handleCompleteTask={handleCompleteTask}
-      />
-    </div>
-  )
+	return (
+		<div className="border border-gray-300 rounded-lg p-4">
+			<ActiveOtherTask
+				otherTask={otherTask}
+				loading={loading}
+				handleCompleteTask={handleCompleteTask}
+			/>
+		</div>
+	);
 }

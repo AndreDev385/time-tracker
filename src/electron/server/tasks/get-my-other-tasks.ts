@@ -2,17 +2,20 @@ import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
 
-export async function getMyOtherTasks(statuses: TaskStatus[], startAt?: Date): Promise<{ otherTasks: OtherTask[] } & SuccessResponse | ErrorResponse> {
+export async function getMyOtherTasks(
+	statuses: TaskStatus[],
+	startAt?: Date,
+): Promise<({ otherTasks: OtherTask[] } & SuccessResponse) | ErrorResponse> {
 	try {
-		const token = readToken()?.token ?? ''
+		const token = readToken()?.token ?? "";
 
-		const url = new URL(`${API_URL}/other-tasks`)
+		const url = new URL(`${API_URL}/other-tasks`);
 		for (const s of statuses) {
-			url.searchParams.set("status", s)
+			url.searchParams.set("status", s);
 		}
 
 		if (startAt) {
-			url.searchParams.set("startAt", startAt.toDateString())
+			url.searchParams.set("startAt", startAt.toDateString());
 		}
 
 		const response = await net.fetch(url.toString(), {
@@ -20,20 +23,19 @@ export async function getMyOtherTasks(statuses: TaskStatus[], startAt?: Date): P
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
-		})
+		});
 
 		if (!response.ok) {
-			return { success: false, error: "Ha ocurrido un error" }
+			return { success: false, error: "Ha ocurrido un error" };
 		}
 
-		const data = await response.json()
+		const data = await response.json();
 		return {
 			success: true,
 			otherTasks: data,
-		}
-
+		};
 	} catch (e) {
-		console.log({ e })
-		return { success: false, error: "Ha ocurrido un error" }
+		console.log({ e });
+		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

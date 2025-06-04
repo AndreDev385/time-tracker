@@ -1,12 +1,12 @@
-import { ipcMain, WebContents } from 'electron';
-import { validateEventFrame } from './utils.js';
+import { ipcMain, type WebContents } from "electron";
+import { validateEventFrame } from "./utils.js";
 
 export function ipcMainHandle<Key extends keyof EventPayloadMapping>(
 	key: Key,
-	handler: () => EventPayloadMapping[Key]
+	handler: () => EventPayloadMapping[Key],
 ) {
 	ipcMain.handle(key, (event) => {
-		validateEventFrame(event.senderFrame!);
+		validateEventFrame(event.senderFrame);
 		return handler();
 	});
 }
@@ -16,7 +16,7 @@ export function ipcMainOn<Key extends keyof EventPayloadMapping>(
 	handler: (payload: EventPayloadMapping[Key]) => void,
 ) {
 	ipcMain.on(key, (event, payload) => {
-		validateEventFrame(event.senderFrame!);
+		validateEventFrame(event.senderFrame);
 		return handler(payload);
 	});
 }
@@ -24,7 +24,7 @@ export function ipcMainOn<Key extends keyof EventPayloadMapping>(
 export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(
 	key: Key,
 	webContents: WebContents,
-	payload: EventPayloadMapping[Key]
+	payload: EventPayloadMapping[Key],
 ) {
 	webContents.send(key, payload);
 }

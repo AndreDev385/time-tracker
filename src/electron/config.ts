@@ -1,6 +1,6 @@
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 export const config = {
 	backBlaze: {
@@ -8,4 +8,4 @@ export const config = {
 		secret: process.env.BACK_BLAZE_SECRET as string,
 	},
 	nodeEnv: process.env.NODE_ENV,
-}
+};

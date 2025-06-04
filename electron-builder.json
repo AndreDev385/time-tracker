@@ -1,29 +1,19 @@
 {
-  "appId": "com.example.time-tracker",
-  "productName": "time-tracker",
-  "files": [
-    "dist-electron",
-    "dist-react"
-  ],
-  "extraResources": [
-    "dist-electron/preload.cjs",
-    "src/assets/**"
-  ],
-  "icon": "appIcon.png",
-  "asar": true,
-  "extraFiles": [
-    ".env"
-  ],
-  "mac": {
-    "target": "dmg"
-  },
-  "linux": {
-    "target": "AppImage",
-    "category": "Utility"
-  },
-  "win": {
-    "target": [
-      "msi"
-    ]
-  }
+	"appId": "com.example.time-tracker",
+	"productName": "time-tracker",
+	"files": ["dist-electron", "dist-react"],
+	"extraResources": ["dist-electron/preload.cjs", "src/assets/**"],
+	"icon": "appIcon.png",
+	"asar": true,
+	"extraFiles": [".env"],
+	"mac": {
+		"target": "dmg"
+	},
+	"linux": {
+		"target": "AppImage",
+		"category": "Utility"
+	},
+	"win": {
+		"target": ["msi"]
+	}
 }

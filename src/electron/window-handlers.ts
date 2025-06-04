@@ -5,7 +5,7 @@ export function showWindow(window: BrowserWindow, app: Electron.App) {
 	if (window && !window.isDestroyed() && !window.isVisible()) {
 		window.show();
 	} else {
-		console.log('Toolbar window does not exist or was destroyed');
+		console.log("Toolbar window does not exist or was destroyed");
 	}
 
 	if (app.dock) {
@@ -26,18 +26,18 @@ export function hideWindow(window: BrowserWindow, app: Electron.App) {
 export function createWindow(
 	urlOrFile: string,
 	options: Electron.BrowserWindowConstructorOptions,
-	show: boolean = true
+	show: boolean,
 ): BrowserWindow {
 	const win = new BrowserWindow({
 		...options,
 		show,
-	})
+	});
 
 	if (isDev()) {
-		win.loadURL(urlOrFile)
+		win.loadURL(urlOrFile);
 	} else {
-		win.loadFile(urlOrFile)
+		win.loadFile(urlOrFile);
 	}
 
-	return win
+	return win;
 }

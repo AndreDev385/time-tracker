@@ -1,17 +1,21 @@
 import "dotenv/config";
-import { S3Client, PutObjectCommand, ListBucketsCommand } from "@aws-sdk/client-s3";
+import {
+	S3Client,
+	PutObjectCommand,
+	ListBucketsCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { net } from "electron";
 
-const BUCKET_NAME = "time-tracker-bucket"
-const REGION = "us-east-005"
+const BUCKET_NAME = "time-tracker-bucket";
+const REGION = "us-east-005";
 
 const s3Client = new S3Client({
 	region: REGION,
 	endpoint: `https://s3.${REGION}.backblazeb2.com`,
 	credentials: {
-		accessKeyId: process.env.BACK_BLAZE_KEY!,
-		secretAccessKey: process.env.BACK_BLAZE_SECRET!,
+		accessKeyId: process.env.BACK_BLAZE_KEY as string,
+		secretAccessKey: process.env.BACK_BLAZE_SECRET as string,
 	},
 	forcePathStyle: true,
 });
@@ -33,11 +37,11 @@ export async function testCredentials() {
 }
 
 function dataURLtoFile(dataurl: string, filename: string) {
-	const arr = dataurl.split(",")
-	const mime = arr[0].match(/:(.*?);/)![1]
+	const arr = dataurl.split(",");
+	const mime = arr[0].match(/:(.*?);/)?.[1];
 	const bstr = atob(arr[arr.length - 1]);
-	let n = bstr.length
-	const u8arr = new Uint8Array(n)
+	let n = bstr.length;
+	const u8arr = new Uint8Array(n);
 	while (n--) {
 		u8arr[n] = bstr.charCodeAt(n);
 	}
@@ -46,9 +50,9 @@ function dataURLtoFile(dataurl: string, filename: string) {
 
 export async function uploadFile(dataURL: string) {
 	try {
-		const file = dataURLtoFile(dataURL, `capure-${new Date().getTime()}.png`)
+		const file = dataURLtoFile(dataURL, `capure-${new Date().getTime()}.png`);
 		// 1. Get pre-signed URL from your server
-		const uploadUrl = await generateUploadUrl(file)
+		const uploadUrl = await generateUploadUrl(file);
 
 		if (!uploadUrl) {
 			return;
@@ -60,7 +64,9 @@ export async function uploadFile(dataURL: string) {
 
 		// Verify conversion
 		if (byteArray.length !== file.size) {
-			throw new Error(`Buffer size mismatch (${byteArray.length} vs ${file.size})`);
+			throw new Error(
+				`Buffer size mismatch (${byteArray.length} vs ${file.size})`,
+			);
 		}
 
 		const uploadResponse = await net.fetch(uploadUrl, {
@@ -68,13 +74,13 @@ export async function uploadFile(dataURL: string) {
 			headers: {
 				"Content-Type": file.type,
 			},
-			body: byteArray
+			body: byteArray,
 		});
 
 		if (uploadResponse.ok) {
 			return `https://f005.backblazeb2.com/file/${BUCKET_NAME}/${file.name}`;
 		}
 	} catch (e) {
-		console.log("upload-file", { e })
+		console.log("upload-file", { e });
 	}
 }
