@@ -35,7 +35,7 @@ import { getCurrTask } from "./server/tasks/get-curr-task.js";
 import { todayCompletedTasks } from "./server/tasks/today-completed-tasks.js";
 import { captureScreens } from "./lib/capture-screens.js";
 import { uploadFile } from "./lib/upload-captures.js";
-import { createWindow, hideWindow, showWindow } from "./window-handlers.js";
+import { createWindow, showWindow } from "./window-handlers.js";
 import { getAppSettings } from "./server/app-settings.js";
 import { getTaskHistory } from "./server/tasks/paginate-task-history.js";
 import { saveUserCaptures } from "./server/save-user-capture.js";
@@ -43,12 +43,15 @@ import { secondsInMinute } from "date-fns/constants";
 
 let activeJourney: Journey | null = null;
 
-app.on("ready", async () => {
-	app.setLoginItemSettings({
-		openAtLogin: true,
-	});
+app.setLoginItemSettings({
+	openAtLogin: true,
+});
 
-	const mainWindow = createWindow(
+let mainWindow: BrowserWindow;
+let toolbarWindow: BrowserWindow;
+
+app.on("ready", async () => {
+	mainWindow = createWindow(
 		isDev() ? "http://localhost:5123" : getMainUIPath(),
 		{
 			width: 1280,
@@ -62,7 +65,7 @@ app.on("ready", async () => {
 		true,
 	);
 
-	const toolbarWindow: BrowserWindow = createWindow(
+	toolbarWindow = createWindow(
 		isDev() ? "http://localhost:5123/toolbar.html" : getToolbarUIPath(),
 		{
 			width: 700,
@@ -117,7 +120,6 @@ app.on("ready", async () => {
 		const result = await endJourney(journeyId);
 		if (result.success) {
 			activeJourney = null;
-			hideWindow(toolbarWindow, app);
 		}
 		ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
 		ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result);
@@ -383,8 +385,21 @@ app.on("ready", async () => {
 	initializeIdleMonitor();
 });
 
-app.on("window-all-closed", () => {
+app.on("before-quit", async (e) => {
 	if (activeJourney) {
-		endJourney(activeJourney.id);
+		e.preventDefault();
+		const result = await endJourney(activeJourney.id);
+		if (result.success) {
+			activeJourney = null;
+			ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
+			ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result);
+			app.quit();
+		}
+	}
+});
+
+app.on("window-all-closed", async () => {
+	if (activeJourney) {
+		await endJourney(activeJourney.id);
 	}
 });

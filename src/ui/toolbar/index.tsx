@@ -1,16 +1,17 @@
-import { useState, useEffect, type ChangeEvent, type ReactNode } from "react";
-import { LocalStorage } from "../storage";
+import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { type ChangeEvent, type ReactNode, useEffect, useState } from "react";
+import invariant from "tiny-invariant";
 import { Button } from "../components/shared/button";
-import { ActiveTask } from "../components/tasks/active-task";
-import { ActiveOtherTask } from "../components/tasks/active-other-task";
-import { isTask } from "../lib/check-task-type";
 import { Input } from "../components/shared/input";
-import { Draggable } from "./draggable";
-import { SmallJourneyTimer } from "./small-journey-timer";
+import { ActiveOtherTask } from "../components/tasks/active-other-task";
+import { ActiveTask } from "../components/tasks/active-task";
 import { TasksForm } from "../components/tasks/form";
+import { isTask } from "../lib/check-task-type";
+import { LocalStorage } from "../storage";
+import { Draggable } from "./draggable";
 import { OpenMainWindow } from "./open-main-window-button";
-import { PlayIcon } from "@heroicons/react/24/solid";
+import { SmallJourneyTimer } from "./small-journey-timer";
 
 export function Toolbar() {
 	const [journey, setJourney] = useState<{
@@ -41,9 +42,9 @@ export function Toolbar() {
 	useEffect(function startJourneyResult() {
 		return window.electron.startJourneyResult((data) => {
 			if (data.success) {
-				setLoading(false);
 				setJourney(data.journey);
 			}
+			setLoading(false);
 		});
 	}, []);
 
@@ -217,6 +218,11 @@ function Wrapper({
 		id: Journey["id"];
 	};
 }) {
+	function handleStopJourney() {
+		invariant(journey, "journey is not defined");
+		window.electron.endJourney(journey.id);
+	}
+
 	return (
 		<div className="h-dvh flex items-center justify-between pr-2">
 			<Draggable />
@@ -224,6 +230,14 @@ function Wrapper({
 			<div className="flex items-center justify-between w-full overflow-x-hidden">
 				{children}
 			</div>
+			<Button
+				name="intent"
+				value="start-journey"
+				variant="ghost"
+				onMouseDown={handleStopJourney}
+			>
+				<StopIcon color="red" className="size-6" />
+			</Button>
 			<OpenMainWindow />
 		</div>
 	);

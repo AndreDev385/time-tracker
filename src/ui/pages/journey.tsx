@@ -34,6 +34,8 @@ export function JourneyLayout() {
 		window.electron.loadJourney().then((data) => {
 			if (data.success) {
 				setJourney(data.journey);
+			} else {
+				window.electron.startJourney();
 			}
 		});
 	}, []);
