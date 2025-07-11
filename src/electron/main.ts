@@ -126,7 +126,7 @@ app.on("before-quit", async (e) => {
 		e.preventDefault();
 		const result = await endJourney(activeJourney.id);
 		if (result.success) {
-			activeJourney = null;
+			endJourneyAndIntervals();
 			ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
 			ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result);
 			app.quit();
@@ -166,7 +166,7 @@ ipcMainOn("startJourney", async () => {
 ipcMainOn("endJourney", async (journeyId: string) => {
 	const result = await endJourney(journeyId);
 	if (result.success) {
-		activeJourney = null;
+		endJourneyAndIntervals();
 	}
 	ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
 	ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result);
@@ -343,7 +343,7 @@ function startIdleMonitor() {
 			if (idleTime >= idleTimeAllowed && activeJourney) {
 				const result = await endJourney(activeJourney.id);
 				if (result.success) {
-					activeJourney = null;
+					endJourneyAndIntervals();
 					ipcWebContentsSend(
 						"endJourneyResult",
 						mainWindow.webContents,
@@ -403,4 +403,11 @@ async function initializeIdleMonitor() {
 	await loadAppSettings();
 	startIdleMonitor();
 	startCaptureMonitor();
+}
+
+function endJourneyAndIntervals() {
+	activeJourney = null;
+	if (idleIntervalRef) clearInterval(idleIntervalRef);
+	if (captureIntervalRef) clearInterval(captureIntervalRef);
+	if (heartbeatIntervalRef) clearInterval(heartbeatIntervalRef);
 }
