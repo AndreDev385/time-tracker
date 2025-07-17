@@ -116,7 +116,9 @@ app.on("ready", async () => {
 		}
 	});
 
-	initializeIdleMonitor();
+	await loadAppSettings();
+	startIdleMonitor();
+	startCaptureMonitor();
 	startHeartBeatInterval();
 	createTray(mainWindow, toolbarWindow, !!activeJourney);
 });
@@ -337,33 +339,31 @@ async function loadAppSettings() {
 function startIdleMonitor() {
 	if (idleIntervalRef) clearInterval(idleIntervalRef);
 
-	idleIntervalRef = setInterval(() => {
-		(async () => {
-			const idleTime = powerMonitor.getSystemIdleTime();
-			if (idleTime >= idleTimeAllowed && activeJourney) {
-				const result = await endJourney(activeJourney.id);
-				if (result.success) {
-					endJourneyAndIntervals();
-					ipcWebContentsSend(
-						"endJourneyResult",
-						mainWindow.webContents,
-						result,
-					);
-					ipcWebContentsSend(
-						"endJourneyResult",
-						toolbarWindow.webContents,
-						result,
-					);
+	idleIntervalRef = setInterval(async () => {
+		const idleTime = powerMonitor.getSystemIdleTime();
+		if (idleTime >= idleTimeAllowed && activeJourney) {
+			const result = await endJourney(activeJourney.id);
+			if (result.success) {
+				endJourneyAndIntervals();
+				ipcWebContentsSend(
+					"endJourneyResult",
+					mainWindow.webContents,
+					result,
+				);
+				ipcWebContentsSend(
+					"endJourneyResult",
+					toolbarWindow.webContents,
+					result,
+				);
 
-					const pausedTasks = await getMyTasks(["paused"]);
-					ipcWebContentsSend(
-						"reloadPausedTasks",
-						mainWindow.webContents,
-						pausedTasks,
-					);
-				}
+				const pausedTasks = await getMyTasks(["paused"]);
+				ipcWebContentsSend(
+					"reloadPausedTasks",
+					mainWindow.webContents,
+					pausedTasks,
+				);
 			}
-		})();
+		}
 	}, secondsToMilliseconds(secondsInMinute));
 }
 
@@ -397,12 +397,6 @@ function startHeartBeatInterval() {
 		if (!activeJourney) return;
 		await updateLastHeartBeat();
 	}, secondsToMilliseconds(UPDATE_HEARTBEAT_INTERVAL));
-}
-
-async function initializeIdleMonitor() {
-	await loadAppSettings();
-	startIdleMonitor();
-	startCaptureMonitor();
 }
 
 function endJourneyAndIntervals() {
