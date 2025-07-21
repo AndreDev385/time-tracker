@@ -14,12 +14,10 @@ export async function captureScreens() {
 			},
 		});
 
-		const source = sources.find(
-			({ display_id }) => display_id === String(d.id),
-		);
-		if (!source) {
-			continue;
-		}
+		if (sources.length === 0) continue;
+
+		const source = sources[0];
+
 		dataURLs.push(source.thumbnail.toDataURL());
 	}
 	return dataURLs;
