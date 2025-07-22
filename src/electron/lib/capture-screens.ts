@@ -14,9 +14,13 @@ export async function captureScreens() {
 			},
 		});
 
-		if (sources.length === 0) continue;
+		const source = sources.find(
+			({ display_id }) => display_id === String(d.id),
+		);
 
-		const source = sources[0];
+		if (!source) {
+			continue;
+		}
 
 		dataURLs.push(source.thumbnail.toDataURL());
 	}
