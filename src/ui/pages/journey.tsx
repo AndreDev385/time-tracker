@@ -30,6 +30,14 @@ export function JourneyLayout() {
 	const [pausedTasks, setPausedTasks] = React.useState<Task[]>([]);
 	const [otherTasks, setOtherTasks] = React.useState<OtherTask[]>([]);
 
+	const [version, setVersion] = React.useState("");
+
+	React.useEffect(() => {
+		window.electron.getAppVersion().then((version) => {
+			setVersion(version);
+		});
+	}, []);
+
 	React.useEffect(() => {
 		window.electron.loadJourney().then((data) => {
 			if (data.success) {
@@ -138,7 +146,7 @@ export function JourneyLayout() {
 	}, []);
 
 	return (
-		<div className="flex h-full justify-center items-center">
+		<div className="flex flex-col h-full justify-center items-center">
 			<Tabs defaultValue="default" className="w-full max-w-6xl py-8 px-2">
 				<TabsList className="grid w-full grid-cols-2">
 					<TabsTrigger value="default">Zona de trabajo</TabsTrigger>
@@ -192,6 +200,7 @@ export function JourneyLayout() {
 					<TasksHistory />
 				</TabsContent>
 			</Tabs>
+			<small>Version: {version}</small>
 		</div>
 	);
 }

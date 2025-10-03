@@ -141,6 +141,8 @@ app.on("window-all-closed", async () => {
 	}
 });
 
+ipcMainHandle("getAppVersion", () => app.getVersion());
+
 ipcMainOn("signInSubmit", async (data: SignInFormData) => {
 	const result = await signIn(data);
 	if (result.success) {

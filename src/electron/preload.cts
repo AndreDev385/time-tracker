@@ -2,6 +2,7 @@
 import electron from "electron";
 
 electron.contextBridge.exposeInMainWorld("electron", {
+	getAppVersion: async () => await ipcInvoke("getAppVersion"),
 	takeScreenshot: () => {
 		ipcSend("takeScreenshot", undefined);
 	},

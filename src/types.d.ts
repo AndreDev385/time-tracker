@@ -111,6 +111,7 @@ type AppSetting = {
 
 interface Window {
 	electron: {
+		getAppVersion: () => Promise<string>;
 		takeScreenshot: () => void;
 		screenShotResult: (callback: (data: string[]) => void) => void;
 
@@ -241,6 +242,7 @@ interface Window {
 }
 
 type EventPayloadMapping = {
+	getAppVersion: string;
 	takeScreenshot: undefined;
 	screenShotResult: string[];
 
