@@ -2,13 +2,13 @@ import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
 import { mapIntervalsStringToDate } from "../../lib/map-intervals.js";
-
-//TODO: Update to add date range
+import logger from '../../lib/logger.js';
 
 export async function getMyTasks(
 	statuses: TaskStatus[],
 	endAt?: Date,
 ): Promise<({ tasks: Task[] } & SuccessResponse) | ErrorResponse> {
+	logger.info("get-my-tasks: entry");
 	try {
 		const token = readToken()?.token ?? "";
 
@@ -29,11 +29,13 @@ export async function getMyTasks(
 		});
 
 		if (!response.ok) {
+			logger.error("get-my-tasks: api error", { status: response.status });
 			return { success: false, error: "Ha ocurrido un error" };
 		}
 
 		const data = await response.json();
 
+		logger.info("get-my-tasks: success", { taskCount: data.length });
 		return {
 			success: true,
 			tasks: data.map(
@@ -44,7 +46,7 @@ export async function getMyTasks(
 			),
 		};
 	} catch (e) {
-		console.log({ e });
+		logger.error("get-my-tasks: error", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

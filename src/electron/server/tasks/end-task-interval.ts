@@ -1,6 +1,7 @@
 import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import logger from '../../lib/logger.js';
 
 type EndTaskIntervalIntent = "complete" | "cancel" | "pause";
 
@@ -28,14 +29,16 @@ async function endTaskInterval(
 		});
 
 		if (!response.ok) {
+			logger.error(`end-task-interval: ${intent} error`, { taskId });
 			return { success: false, error: "Ha ocurrido un error" };
 		}
 
+		logger.info(`end-task-interval: ${intent} success`, { taskId });
 		return {
 			success: response.ok,
 		};
 	} catch (e) {
-		console.log(`end-task-interval: ${intent}`, { e });
+		logger.error(`end-task-interval: ${intent}`, { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

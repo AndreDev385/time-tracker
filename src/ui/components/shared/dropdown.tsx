@@ -27,7 +27,7 @@ export function DropdownCard({
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
-				className="flex w-full items-center justify-between p-4 hover:bg-muted/50 rounded-lg"
+				className="cursor-pointer flex w-full items-center justify-between p-4 hover:bg-muted/50 rounded-lg"
 			>
 				<h3 className="text-sm font-medium">{title}</h3>
 				<ChevronDown

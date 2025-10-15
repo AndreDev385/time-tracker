@@ -1,6 +1,7 @@
 import React from "react";
+import { UI_DEBOUNCE_DELAY } from "../lib/utils";
 
-export function useDebounce<T>(value: T, delay = 500) {
+export function useDebounce<T>(value: T, delay = UI_DEBOUNCE_DELAY) {
 	const [debouncedValue, setDebouncedValue] = React.useState(value);
 
 	React.useEffect(() => {

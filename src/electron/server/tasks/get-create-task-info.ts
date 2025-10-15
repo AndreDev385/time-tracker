@@ -5,10 +5,12 @@ import { getProjects } from "../projects/get-projects.js";
 import { getRecordTypes } from "../record-types/get-record-types.js";
 import { getTaskTypes } from "../task-types/get-task-types.js";
 import { getWorkTypes } from "../work-types/get-work-types.js";
+import logger from '../../lib/logger.js';
 
 export async function getCreateTaskInfo(): Promise<
 	(CreateTaskInfo & SuccessResponse) | ErrorResponse
 > {
+	logger.info("get-create-task-info: entry");
 	try {
 		const data = await Promise.all([
 			getProjects(),
@@ -32,6 +34,7 @@ export async function getCreateTaskInfo(): Promise<
 			return { success: false, error: "Ha ocurrido un error" };
 		}
 
+		logger.info("get-create-task-info: success");
 		return {
 			success: true,
 			projects: data[0].projects.filter((p) =>
@@ -46,7 +49,7 @@ export async function getCreateTaskInfo(): Promise<
 			workTypes: data[5].workTypes,
 		};
 	} catch (e) {
-		console.log("get-create-task-info", { e });
+		logger.error("get-create-task-info: error", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

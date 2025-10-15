@@ -71,9 +71,7 @@ export function Toolbar() {
 				} else {
 					LocalStorage().removeItem("currTask");
 				}
-			} else {
-				// TODO: handle error
-			}
+			} 
 			setLoading(false);
 		});
 	}, []);

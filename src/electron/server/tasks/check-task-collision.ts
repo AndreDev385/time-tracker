@@ -1,6 +1,8 @@
 import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import { me } from "../me.js";
+import logger from '../../lib/logger.js';
 
 export async function checkTaskCollision(data: CreateTaskFormData): Promise<
 	| ((
@@ -10,15 +12,16 @@ export async function checkTaskCollision(data: CreateTaskFormData): Promise<
 			| {
 					collision: true;
 					data: {
+						user: string;
 						taskType: string;
 						taskStatus: Task["status"];
-						user: string;
 					};
 			  }
 	  ) &
 			SuccessResponse)
 	| ErrorResponse
 > {
+	logger.info("check-task-collision: entry");
 	try {
 		const token = readToken()?.token;
 
@@ -38,9 +41,18 @@ export async function checkTaskCollision(data: CreateTaskFormData): Promise<
 			return { success: false, error: "Ha ocurrido un error" };
 		}
 
-		return await response.json();
+		const result = await response.json();
+		if (result.collision) {
+			const userResult = await me();
+			if (!userResult.success) {
+				return { success: false, error: "Ha ocurrido un error" };
+			}
+			result.data.user = userResult.user.name;
+		}
+		logger.info("check-task-collision: success", { collision: result.collision });
+		return result;
 	} catch (e) {
-		console.log("check-collision", { e });
+		logger.error("check-task-collision: error", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

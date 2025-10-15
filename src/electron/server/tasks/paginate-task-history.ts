@@ -2,6 +2,7 @@ import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
 import { mapIntervalsStringToDate } from "../../lib/map-intervals.js";
+import logger from '../../lib/logger.js';
 
 export async function getTaskHistory(
 	offset: number,
@@ -47,7 +48,7 @@ export async function getTaskHistory(
 			success: true,
 		};
 	} catch (e) {
-		console.log("paginate-task-history", { e });
+		logger.error("paginate-task-history", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

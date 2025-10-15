@@ -1,6 +1,7 @@
 import { net } from "electron";
 import { API_URL } from "../config.js";
 import { readToken } from "../../lib/jwt.js";
+import logger from '../../lib/logger.js';
 
 export async function getCurrTask(): Promise<
 	({ task?: Task | OtherTask } & SuccessResponse) | ErrorResponse
@@ -29,7 +30,7 @@ export async function getCurrTask(): Promise<
 			task: data.task,
 		};
 	} catch (e) {
-		console.log("get-curr-task", { e });
+		logger.error("get-curr-task", { e });
 		return { success: false, error: "Ha ocurrido un error al buscar la tarea" };
 	}
 }

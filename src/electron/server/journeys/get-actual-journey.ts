@@ -1,6 +1,7 @@
 import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import logger from '../../lib/logger.js';
 
 export async function getActualJourney(): Promise<
 	({ journey: Journey } & SuccessResponse) | ErrorResponse
@@ -22,7 +23,7 @@ export async function getActualJourney(): Promise<
 
 		return { journey: json.journey, success: true };
 	} catch (e) {
-		console.log("get-actual-journey", { e });
+		logger.error("get-actual-journey", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

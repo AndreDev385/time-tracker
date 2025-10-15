@@ -1,9 +1,9 @@
 import React from "react";
 import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
-
-import { formatDistanceHHMM } from "../../lib/utils";
-import { Button } from "../shared/button";
 import { Loader2 } from "lucide-react";
+import { formatDistanceHHMM, calculateTotalDailyJourneyTime } from "../../lib/utils";
+import { Button } from "../shared/button";
+import { UI_CLOCK_UPDATE_INTERVAL } from "../../lib/utils";
 
 export function JourneyTimer({
 	journey,
@@ -12,22 +12,31 @@ export function JourneyTimer({
 	handleStartJourney,
 }: Props) {
 	const [currentTime, setCurrentTime] = React.useState(new Date());
+	const [todaysJourneys, setTodaysJourneys] = React.useState<Journey[]>([]);
 
 	React.useEffect(function timer() {
 		const interval = setInterval(() => {
 			setCurrentTime(new Date());
-		}, 1000);
+		}, UI_CLOCK_UPDATE_INTERVAL);
 
 		return () => clearInterval(interval);
 	}, []);
+
+	React.useEffect(() => {
+		const fetchJourneys = async () => {
+			const result = await window.electron.getTodaysJourneys();
+			if (result.success) {
+				setTodaysJourneys(result.journeys);
+			}
+		};
+		fetchJourneys();
+	}, [journey]); 
 
 	return (
 		<div className="w-full">
 			<div className="flex flex-row items-center justify-between p-4 border border-gray-300 rounded-lg shadow-lg w-full">
 				<h2 className="font-bold">
-					{journey
-						? formatDistanceHHMM(journey?.startAt, currentTime)
-						: formatDistanceHHMM(new Date(), new Date())}
+					{formatDistanceHHMM(new Date(0), new Date(calculateTotalDailyJourneyTime(todaysJourneys, currentTime)))}
 				</h2>
 				{journey ? (
 					<Button

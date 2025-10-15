@@ -44,7 +44,6 @@ export function TasksPage() {
 		function createTaskResult() {
 			return window.electron.createTaskResult((result) => {
 				if (result.success) {
-					console.log({ result });
 					LocalStorage().setItem("currTask", result.task);
 					navigate(ROUTES.inProgressTask, { state: { task: result.task } });
 				} else {
@@ -72,7 +71,6 @@ export function TasksPage() {
 	);
 
 	React.useEffect(function checkTaskCollision() {
-		// TODO: Append submit task data to continue collision
 		return window.electron.checkTaskCollisionResult((data) => {
 			if (data.success) {
 				setCollisionModal({
@@ -107,10 +105,8 @@ export function TasksPage() {
 			</div>
 		);
 	}
-	// TODO: handle error
 	return (
 		<>
-			{/* TODO: Handle the continue collision in the ipc main */}
 			<CollisionModal
 				state={collisionModal}
 				setState={(v) =>

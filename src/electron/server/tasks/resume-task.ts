@@ -2,6 +2,7 @@ import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
 import { mapIntervalsStringToDate } from "../../lib/map-intervals.js";
+import logger from '../../lib/logger.js';
 
 export async function resumeTask(
 	taskId: Task["id"],
@@ -20,10 +21,11 @@ export async function resumeTask(
 		});
 
 		const json = await response.json();
-		console.log({ json, ok: response.ok });
 		if (!response.ok) {
+			logger.error("resume-task: error", { taskId, json });
 			return { success: false, error: "Ha ocurrido un error" };
 		}
+		logger.info("resume-task: success", { taskId });
 
 		return {
 			success: response.ok,
@@ -33,7 +35,7 @@ export async function resumeTask(
 			},
 		};
 	} catch (e) {
-		console.log("resume-task-interval", { e });
+		logger.error("resume-task-interval", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

@@ -12,6 +12,7 @@ import {
 	SelectValue,
 } from "../shared/select";
 import { TasksTable } from "./task-table";
+import { UI_TASK_HISTORY_PAGINATION_LIMITS } from "../../lib/utils";
 
 export function TasksHistory() {
 	const [recordId, setRecorId] = React.useState<string>("");
@@ -96,11 +97,11 @@ function Pagination({
 						<SelectValue placeholder="filas" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="10">10</SelectItem>
-						<SelectItem value="20">20</SelectItem>
-						<SelectItem value="30">30</SelectItem>
-						<SelectItem value="40">40</SelectItem>
-						<SelectItem value="50">50</SelectItem>
+						{UI_TASK_HISTORY_PAGINATION_LIMITS.map((limit) => (
+							<SelectItem key={limit} value={`${limit}`}>
+								{limit}
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>
 			</div>

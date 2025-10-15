@@ -27,7 +27,6 @@ export function InProgressTask() {
 
 	useEffect(() => {
 		window.electron.getCurrTask().then((data) => {
-			console.log({ data }, "in progress task");
 			if (!data.success) {
 				navigate(ROUTES.journey);
 			}

@@ -1,322 +1,121 @@
-import { app, type BrowserWindow, powerMonitor } from "electron";
+import { app, powerMonitor } from "electron";
 import { secondsToMilliseconds } from "date-fns";
 
-import { isDev, SETTINGS } from "./lib/utils.js";
+import { SETTINGS } from "./lib/utils.js";
 import {
-	getMainUIPath,
-	getPreloadPath,
-	getToolbarUIPath,
-} from "./lib/path-resolver.js";
-import { createTray } from "./tray.js";
-import { signIn } from "./server/sign-in.js";
-import { saveToken } from "./lib/jwt.js";
-import { createTask } from "./server/tasks/create-task.js";
-import { me } from "./server/me.js";
-import {
-	ipcMainHandle,
-	ipcMainOn,
 	ipcWebContentsSend,
 } from "./lib/ipc-main-handlers.js";
-import { getCreateTaskInfo } from "./server/tasks/get-create-task-info.js";
-import { startJourney } from "./server/journeys/start-journey.js";
 import { endJourney } from "./server/journeys/end-journey.js";
-import {
-	cancelTask,
-	completeOtherTask,
-	completeTask,
-	pauseTaskInterval,
-} from "./server/tasks/end-task-interval.js";
-import { checkTaskCollision } from "./server/tasks/check-task-collision.js";
 import { getMyTasks } from "./server/tasks/get-my-tasks.js";
-import { resumeTask } from "./server/tasks/resume-task.js";
-import { createOtherTask } from "./server/other-tasks/create-other-task.js";
 import { getActualJourney } from "./server/journeys/get-actual-journey.js";
-import { getCurrTask } from "./server/tasks/get-curr-task.js";
-import { todayCompletedTasks } from "./server/tasks/today-completed-tasks.js";
 import { captureScreens } from "./lib/capture-screens.js";
 import { uploadFile } from "./lib/upload-captures.js";
-import { createWindow, showWindow } from "./window-handlers.js";
 import { getAppSettings } from "./server/app-settings.js";
-import { getTaskHistory } from "./server/tasks/paginate-task-history.js";
 import { saveUserCaptures } from "./server/save-user-capture.js";
 import { secondsInMinute } from "date-fns/constants";
 import { updateLastHeartBeat } from "./server/journeys/update-last-heart-beat.js";
 
-let activeJourney: Journey | null = null;
+import { DEFAULT_IDLE_TIME_ALLOWED, DEFAULT_CAPTURE_INTERVAL, UPDATE_HEARTBEAT_INTERVAL } from "./config.js";
+import { handleAppReady, handleAppBeforeQuit, handleAppWindowAllClosed } from "./handlers/app-handlers.js";
+import { setupIPC } from "./ipc-setup.js";
+import { executeEffects } from "./handlers/effects.js";
+import { saveWindowPositions } from "./lib/window-positions.js";
+import logger from './lib/logger.js';
 
-app.setLoginItemSettings({
-	openAtLogin: true,
-});
-
-const DEFAULT_IDLE_TIME_ALLOWED = 300; // 5 minutes
-const DEFAULT_CAPTURE_INTERVAL = 300; //
-
-const UPDATE_HEARTBEAT_INTERVAL = 60;
-
-let idleTimeAllowed = DEFAULT_IDLE_TIME_ALLOWED;
-let captureEvery = DEFAULT_CAPTURE_INTERVAL;
-
-let idleIntervalRef: NodeJS.Timeout | null = null;
-let captureIntervalRef: NodeJS.Timeout | null = null;
-let heartbeatIntervalRef: NodeJS.Timeout | null = null;
-
-let mainWindow: BrowserWindow;
-let toolbarWindow: BrowserWindow;
-
-app.on("ready", async () => {
-	mainWindow = createWindow(
-		isDev() ? "http://localhost:5123" : getMainUIPath(),
-		{
-			width: 1280,
-			minWidth: 1000,
-			height: 800,
-			minHeight: 800,
-			webPreferences: {
-				preload: getPreloadPath(),
-			},
+function createInitialAppState(): AppState {
+	return {
+		activeJourney: null,
+		settings: {
+			idleTimeAllowed: DEFAULT_IDLE_TIME_ALLOWED,
+			captureEvery: DEFAULT_CAPTURE_INTERVAL,
 		},
-		true,
-	);
-
-	toolbarWindow = createWindow(
-		isDev() ? "http://localhost:5123/toolbar.html" : getToolbarUIPath(),
-		{
-			width: 700,
-			minWidth: 600,
-			height: 30,
-			minHeight: 30,
-			maxHeight: 30,
-			titleBarStyle: "hidden",
-			frame: false,
-			skipTaskbar: true,
-			alwaysOnTop: true,
-			webPreferences: {
-				contextIsolation: true,
-				preload: getPreloadPath(),
-			},
+		intervals: {
+			idle: null,
+			capture: null,
+			heartbeat: null,
 		},
-		true,
-	);
+		windows: {
+			main: null,
+			toolbar: null,
+		},
+	};
+}
 
-	await checkJourney();
+let appState: AppState = createInitialAppState();
 
-	// check if there's a journey active
-	mainWindow.on("close", (e) => {
-		if (activeJourney) {
-			e.preventDefault();
-			mainWindow.hide();
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+	app.quit();
+} else {
+	app.on('second-instance', () => {
+		// Focus existing windows when a second instance is attempted
+		if (appState.windows.main) {
+			appState.windows.main.show();
+			appState.windows.main.focus();
+		}
+		if (appState.windows.toolbar) {
+			appState.windows.toolbar.show();
+			appState.windows.toolbar.focus();
 		}
 	});
 
-	toolbarWindow.on("close", (e) => {
-		if (activeJourney) {
-			e.preventDefault();
-			toolbarWindow.hide();
-			return;
+	app.on("ready", async () => {
+		const { newState, effects } = await handleAppReady(appState);
+		appState = newState;
+		await executeEffects(effects, appState);
+
+		// Window close handlers (keep for now, could refactor later)
+		appState.windows.main!.on("close", (e: Event) => {
+			if (appState.activeJourney) {
+				e.preventDefault();
+				appState.windows.main!.hide();
+			}
+		});
+
+		if (appState.windows.toolbar) {
+			appState.windows.toolbar.on("close", (e: Event) => {
+				if (appState.activeJourney) {
+					e.preventDefault();
+					appState.windows.toolbar!.hide();
+				}
+			});
 		}
 	});
 
-	await loadAppSettings();
-	startIntervals();
-	createTray(mainWindow, toolbarWindow, !!activeJourney);
-});
-
-app.on("before-quit", async (e) => {
-	if (activeJourney) {
-		e.preventDefault();
-		const result = await endJourney(activeJourney.id);
-		if (result.success) {
-			endJourneyAndIntervals();
-			ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
-			ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result);
-			app.quit();
+	app.on("before-quit", async (e) => {
+		// Save window positions before quitting
+		const positions: { main?: Electron.Rectangle; toolbar?: Electron.Rectangle } = {};
+		if (appState.windows.main) {
+			positions.main = appState.windows.main.getBounds();
 		}
-	}
-});
-
-app.on("window-all-closed", async () => {
-	if (activeJourney) {
-		await endJourney(activeJourney.id);
-		endJourneyAndIntervals();
-	}
-});
-
-ipcMainHandle("getAppVersion", () => app.getVersion());
-
-ipcMainOn("signInSubmit", async (data: SignInFormData) => {
-	const result = await signIn(data);
-	if (result.success) {
-		saveToken(result.token);
-	}
-	ipcWebContentsSend("signInResult", mainWindow.webContents, result);
-});
-
-ipcMainHandle("checkToken", () => me());
-ipcMainHandle("getMyTasks", () => getMyTasks(["paused"]));
-
-ipcMainHandle("getCreateTaskInfo", () => getCreateTaskInfo());
-
-ipcMainHandle("loadJourney", () => getActualJourney());
-ipcMainOn("startJourney", async () => {
-	const result = await startJourney();
-	if (result.success) {
-		activeJourney = result.journey;
-		startIntervals();
-	}
-	ipcWebContentsSend("startJourneyResult", mainWindow.webContents, result);
-	ipcWebContentsSend("startJourneyResult", toolbarWindow.webContents, result);
-});
-
-ipcMainOn("endJourney", async (journeyId: string) => {
-	const result = await endJourney(journeyId);
-	if (result.success) {
-		endJourneyAndIntervals();
-	}
-	ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
-	ipcWebContentsSend("endJourneyResult", toolbarWindow.webContents, result);
-	ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-	ipcWebContentsSend(
-		"reloadPausedTasks",
-		mainWindow.webContents,
-		await getMyTasks(["paused"]),
-	);
-});
-
-ipcMainOn("checkTaskCollision", async (data) => {
-	const result = await checkTaskCollision(data);
-	if (!result.success) {
-		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result);
-		return;
-	}
-	if (!result.collision) {
-		// Create the task directly
-		const result = await createTask(data);
-		ipcWebContentsSend("createTaskResult", mainWindow.webContents, result);
-		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-		ipcWebContentsSend(
-			"reloadPausedTasks",
-			mainWindow.webContents,
-			await getMyTasks(["paused"]),
-		);
-		return;
-	}
-	// There's a collision ask if wants to continue
-	showWindow(mainWindow, app);
-	mainWindow.focus();
-	ipcWebContentsSend("checkTaskCollisionResult", mainWindow.webContents, {
-		...result,
-		creationData: data,
+		if (appState.windows.toolbar) {
+			positions.toolbar = appState.windows.toolbar.getBounds();
+		}
+		saveWindowPositions(positions);
+		const { newState, effects } = await handleAppBeforeQuit(appState, e);
+		appState = newState;
+		await executeEffects(effects, appState);
 	});
-});
 
-ipcMainOn("createTaskSubmit", async (data: CreateTaskFormData) => {
-	const result = await createTask(data);
-	ipcWebContentsSend("createTaskResult", mainWindow.webContents, result);
-	ipcWebContentsSend(
-		"reloadPausedTasks",
-		mainWindow.webContents,
-		await getMyTasks(["paused"]),
-	);
-	ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-});
+	app.on("window-all-closed", async () => {
+		const { newState, effects } = await handleAppWindowAllClosed(appState);
+		appState = newState;
+		await executeEffects(effects, appState);
+	});
+}
 
-ipcMainOn("createOtherTaskSubmit", async (data) => {
-	const result = await createOtherTask(data);
-	ipcWebContentsSend("createOtherTaskResult", mainWindow.webContents, result);
-	ipcWebContentsSend(
-		"reloadToolbarData",
-		toolbarWindow.webContents,
-		result.success ? { success: true, task: result.otherTask } : result,
-	);
-});
+setupIPC((newState: AppState) => { appState = newState; }, () => appState);
 
-ipcMainOn("pauseTask", async ({ taskId }) => {
-	const result = await pauseTaskInterval({ id: taskId, comment: "" });
-	ipcWebContentsSend("pauseTaskResult", mainWindow.webContents, result);
-	ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-	ipcWebContentsSend(
-		"reloadPausedTasks",
-		mainWindow.webContents,
-		await getMyTasks(["paused"]),
-	);
-});
-
-ipcMainOn("resumeTask", async (data) => {
-	const result = await resumeTask(data.taskId);
-	ipcWebContentsSend("resumeTaskResult", mainWindow.webContents, result);
-	ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-	ipcWebContentsSend(
-		"reloadPausedTasks",
-		mainWindow.webContents,
-		await getMyTasks(["paused"]),
-	);
-});
-
-ipcMainOn("completeTask", async ({ taskId, isOtherTask, comment = "" }) => {
-	if (isOtherTask) {
-		const result = await completeOtherTask({ id: taskId, comment });
-		ipcWebContentsSend(
-			"completeOtherTaskResult",
-			mainWindow.webContents,
-			result,
-		);
-		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-		ipcWebContentsSend(
-			"reloadTodaysTasks",
-			mainWindow.webContents,
-			await todayCompletedTasks(),
-		);
-	} else {
-		const result = await completeTask({ id: taskId, comment });
-		ipcWebContentsSend("completeTaskResult", mainWindow.webContents, result);
-		ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-		ipcWebContentsSend(
-			"reloadTodaysTasks",
-			mainWindow.webContents,
-			await todayCompletedTasks(),
-		);
-	}
-});
-
-ipcMainOn("cancelTask", async ({ taskId, comment = "" }) => {
-	const result = await cancelTask({ id: taskId, comment });
-	ipcWebContentsSend("cancelTaskResult", mainWindow.webContents, result);
-	ipcWebContentsSend("reloadToolbarData", toolbarWindow.webContents, result);
-	ipcWebContentsSend(
-		"reloadTodaysTasks",
-		mainWindow.webContents,
-		await todayCompletedTasks(),
-	);
-});
-
-ipcMainHandle("getCurrTask", () => getCurrTask());
-
-ipcMainOn("openMainWindow", () => {
-	showWindow(mainWindow, app);
-	mainWindow.focus();
-});
-
-ipcMainHandle("getTodaysTasks", () => todayCompletedTasks());
-
-ipcMainOn("getTaskHistory", async ({ offset, limit, recordId }) => {
-	const result = await getTaskHistory(offset, limit, recordId);
-	ipcWebContentsSend("getTaskHistoryResult", mainWindow.webContents, result);
-});
-
-ipcMainOn("logout", () => {
-	saveToken("");
-	ipcWebContentsSend("logoutResult", mainWindow.webContents, undefined);
-});
-
-async function checkJourney() {
+export async function checkJourney() {
 	const result = await getActualJourney();
 	if (result.success) {
-		activeJourney = result.journey;
+		appState.activeJourney = result.journey;
 		startIntervals();
 	}
 }
 
-async function loadAppSettings() {
+export async function loadAppSettings() {
 	try {
 		const result = await getAppSettings();
 
@@ -325,53 +124,50 @@ async function loadAppSettings() {
 		for (const setting of result.settings) {
 			switch (setting.name) {
 				case SETTINGS.INACTIVE_TIME_ALLOWED:
-					idleTimeAllowed = Number(setting.value) || DEFAULT_IDLE_TIME_ALLOWED;
+					appState.settings.idleTimeAllowed = Number(setting.value) || DEFAULT_IDLE_TIME_ALLOWED;
 					break;
 				case SETTINGS.INTERVAL_BETWEEN_CAPTURES:
-					captureEvery = Number(setting.value) || DEFAULT_CAPTURE_INTERVAL;
+					appState.settings.captureEvery = Number(setting.value) || DEFAULT_CAPTURE_INTERVAL;
 					break;
 			}
 		}
 	} catch (err) {
-		console.error("Error loading settings:", err);
-		idleTimeAllowed = DEFAULT_IDLE_TIME_ALLOWED;
-		captureEvery = DEFAULT_CAPTURE_INTERVAL;
+		logger.error("Error loading settings", { error: err });
+		appState.settings.idleTimeAllowed = DEFAULT_IDLE_TIME_ALLOWED;
+		appState.settings.captureEvery = DEFAULT_CAPTURE_INTERVAL;
 	}
 }
 
-function startIdleMonitor() {
-	if (idleIntervalRef) clearInterval(idleIntervalRef);
-
-	idleIntervalRef = setInterval(async () => {
+export function startIdleMonitor(): NodeJS.Timeout {
+	const interval = setInterval(async () => {
 		const idleTime = powerMonitor.getSystemIdleTime();
-		if (idleTime >= idleTimeAllowed && activeJourney) {
-			const result = await endJourney(activeJourney.id);
+		if (idleTime >= appState.settings.idleTimeAllowed && appState.activeJourney) {
+			const result = await endJourney(appState.activeJourney.id);
 			if (result.success) {
 				endJourneyAndIntervals();
-				ipcWebContentsSend("endJourneyResult", mainWindow.webContents, result);
+				ipcWebContentsSend("endJourneyResult", appState.windows.main!.webContents, result);
 				ipcWebContentsSend(
 					"endJourneyResult",
-					toolbarWindow.webContents,
+					appState.windows.toolbar!.webContents,
 					result,
 				);
 
 				const pausedTasks = await getMyTasks(["paused"]);
 				ipcWebContentsSend(
 					"reloadPausedTasks",
-					mainWindow.webContents,
+					appState.windows.main!.webContents,
 					pausedTasks,
 				);
 			}
 		}
 	}, secondsToMilliseconds(secondsInMinute));
+	return interval;
 }
 
-function startCaptureMonitor() {
-	if (captureIntervalRef) clearInterval(captureIntervalRef);
-
-	captureIntervalRef = setInterval(async () => {
+export function startCaptureMonitor(): NodeJS.Timeout {
+	const interval = setInterval(async () => {
 		try {
-			if (!activeJourney) return;
+			if (!appState.activeJourney) return;
 
 			const dataUrls = await captureScreens();
 
@@ -384,25 +180,25 @@ function startCaptureMonitor() {
 
 			await saveUserCaptures(urls);
 		} catch (err) {
-			console.error("Error during capture upload:", err);
+			logger.error("Error during capture upload", { error: err });
 		}
-	}, secondsToMilliseconds(captureEvery));
+	}, secondsToMilliseconds(appState.settings.captureEvery));
+	return interval;
 }
 
-function startHeartBeatInterval() {
-	if (heartbeatIntervalRef) clearInterval(heartbeatIntervalRef);
-
-	heartbeatIntervalRef = setInterval(async () => {
-		if (!activeJourney) return;
+export function startHeartBeatInterval(): NodeJS.Timeout {
+	const interval = setInterval(async () => {
+		if (!appState.activeJourney) return;
 		await updateLastHeartBeat();
 	}, secondsToMilliseconds(UPDATE_HEARTBEAT_INTERVAL));
+	return interval;
 }
 
-function endJourneyAndIntervals() {
-	activeJourney = null;
-	if (idleIntervalRef) clearInterval(idleIntervalRef);
-	if (captureIntervalRef) clearInterval(captureIntervalRef);
-	if (heartbeatIntervalRef) clearInterval(heartbeatIntervalRef);
+export function endJourneyAndIntervals() {
+	appState.activeJourney = null;
+	if (appState.intervals.idle) clearInterval(appState.intervals.idle);
+	if (appState.intervals.capture) clearInterval(appState.intervals.capture);
+	if (appState.intervals.heartbeat) clearInterval(appState.intervals.heartbeat);
 }
 
 function startIntervals() {

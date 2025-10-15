@@ -86,3 +86,20 @@ export function millisecondsToHHMM(value: number): string {
 	const pad = (n: number) => n.toString().padStart(2, "0");
 	return `${pad(hours)}h:${pad(minutes)}m`;
 }
+
+export function calculateTotalDailyJourneyTime(journeys: Journey[], currentTime: Date, total: number = 0): number {
+	if (journeys.length == 0) return total
+	else return calculateTotalDailyJourneyTime(
+		journeys.slice(1),
+		currentTime,
+		total + differenceInMilliseconds(
+			journeys[0].endAt ? new Date(journeys[0].endAt) : currentTime,
+			new Date(journeys[0].startAt)
+		)
+	)
+}
+
+// UI Constants
+export const UI_CLOCK_UPDATE_INTERVAL = 10000;
+export const UI_DEBOUNCE_DELAY = 300;
+export const UI_TASK_HISTORY_PAGINATION_LIMITS = [10, 25, 50, 100];

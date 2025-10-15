@@ -1,21 +1,33 @@
 import React from "react";
-import { formatDistanceHHMM } from "../lib/utils";
+import { formatDistanceHHMM, calculateTotalDailyJourneyTime } from "../lib/utils";
+import { UI_CLOCK_UPDATE_INTERVAL } from "../lib/utils";
 
 export function SmallJourneyTimer({ journey }: Props) {
 	const [currentTime, setCurrentTime] = React.useState(new Date());
+	const [todaysJourneys, setTodaysJourneys] = React.useState<Journey[]>([]);
 
 	React.useEffect(function timer() {
 		const interval = setInterval(() => {
 			setCurrentTime(new Date());
-		}, 1000);
+		}, UI_CLOCK_UPDATE_INTERVAL);
 
 		return () => clearInterval(interval);
 	}, []);
 
+	React.useEffect(() => {
+		const fetchJourneys = async () => {
+			const result = await window.electron.getTodaysJourneys();
+			if (result.success) {
+				setTodaysJourneys(result.journeys);
+			}
+		};
+		fetchJourneys();
+	}, [journey]);
+
 	return (
-		<p className="text-sm mr-4">
-			{formatDistanceHHMM(journey?.startAt ?? new Date(), currentTime)}
-		</p>
+		<div className="text-sm">
+			{formatDistanceHHMM(new Date(0), new Date(calculateTotalDailyJourneyTime(todaysJourneys, currentTime)))}
+		</div>
 	);
 }
 

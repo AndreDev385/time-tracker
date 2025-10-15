@@ -9,7 +9,6 @@ export function TasksForm({ inToolbar = true }: Props) {
 		OTHER_TASK_FORM_INITIAL_STATE,
 	);
 	const [createTaskInfo, setCreateTaskInfo] = React.useState<CreateTaskInfo>();
-	// TODO: maybe it's good idea to save the user every time the journey page is loaded to avoid deprecated data in assignedProjects
 	const [user, setUser] = React.useState<JWTTokenData>();
 
 	React.useEffect(() => {
@@ -61,7 +60,6 @@ export function TasksForm({ inToolbar = true }: Props) {
 		createTaskFormData: CreateTaskFormData,
 		confirmation = false,
 	) {
-		console.log(createTaskFormData, confirmation);
 		if (confirmation) {
 			window.electron.createTaskSubmit(createTaskFormData);
 		} else {
@@ -79,7 +77,7 @@ export function TasksForm({ inToolbar = true }: Props) {
 			otherTaskForm={otherTaskForm}
 			setOtherTaskForm={setOtherTaskForm}
 			options={createTaskInfo.otherTaskOptions}
-			userId={user.id}
+			userId={String(user.id)}
 		/>
 	) : (
 		<StepsTaskForm

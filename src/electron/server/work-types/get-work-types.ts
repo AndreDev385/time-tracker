@@ -1,9 +1,11 @@
 import { net } from "electron";
 import { API_URL } from "../config.js";
+import logger from '../../lib/logger.js';
 
 export async function getWorkTypes(): Promise<
 	({ workTypes: WorkType[] } & SuccessResponse) | ErrorResponse
 > {
+	logger.info("get-work-types: entry");
 	try {
 		const response = await net.fetch(`${API_URL}/work-types`, {
 			method: "GET",
@@ -14,9 +16,10 @@ export async function getWorkTypes(): Promise<
 			return { success: false, error: "Ha ocurrido un error" };
 		}
 
+		logger.info("get-work-types: success", { workTypeCount: body.length });
 		return { success: true, workTypes: body };
 	} catch (e) {
-		console.log("get-work-types", { e });
+		logger.error("get-work-types: error", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

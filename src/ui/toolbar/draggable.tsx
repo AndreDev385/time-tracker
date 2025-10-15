@@ -8,8 +8,7 @@ export function Draggable() {
 				size="icon"
 				variant="ghost"
 				className="size-7 hover:bg-primary/10"
-				// biome-ignore lint/suspicious/noExplicitAny: especial case
-				style={{ "app-region": "drag" } as any}
+				style={{ "app-region": "drag" } as React.CSSProperties & { "app-region": string }}
 			>
 				<GripVertical className="size-5" />
 			</Button>

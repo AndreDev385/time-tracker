@@ -1,6 +1,7 @@
 import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import logger from '../../lib/logger.js';
 
 export async function getMyOtherTasks(
 	statuses: TaskStatus[],
@@ -35,7 +36,7 @@ export async function getMyOtherTasks(
 			otherTasks: data,
 		};
 	} catch (e) {
-		console.log({ e });
+		logger.error("get-my-other-tasks", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

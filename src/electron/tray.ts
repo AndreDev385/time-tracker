@@ -4,49 +4,53 @@ import path from "node:path";
 
 export function createTray(
 	mainWindow: BrowserWindow,
-	toolbarWindow: BrowserWindow,
+	toolbarWindow: BrowserWindow | null,
 	actualJourney: boolean,
 ) {
 	const tray = new Tray(path.join(getAssetPath(), "reloj.png"));
 
-	tray.setContextMenu(
-		Menu.buildFromTemplate([
-			{
-				label: "Principal",
-				click: () => {
-					if (mainWindow.isVisible()) {
-						mainWindow.hide();
-						if (app.dock) {
-							app.dock.hide();
-						}
-					} else {
-						mainWindow.show();
-						if (app.dock) {
-							app.dock.show();
-						}
-					}
-				},
-			},
-			{
-				label: "Toolbar",
-				enabled: !actualJourney,
-				click: () => {
-					if (toolbarWindow.isVisible()) {
-						toolbarWindow.hide();
-					} else {
-						toolbarWindow.show();
-					}
-				},
-			},
-			{
-				label: "Salir",
-				click: () => {
+	const menuTemplate: Electron.MenuItemConstructorOptions[] = [
+		{
+			label: "Principal",
+			click: () => {
+				if (mainWindow.isVisible()) {
+					mainWindow.hide();
 					if (app.dock) {
 						app.dock.hide();
 					}
-					app.quit();
-				},
+				} else {
+					mainWindow.show();
+					if (app.dock) {
+						app.dock.show();
+					}
+				}
 			},
-		]),
-	);
+		},
+	];
+
+	if (toolbarWindow) {
+		menuTemplate.push({
+			label: "Toolbar",
+			enabled: !actualJourney,
+			click: () => {
+				if (toolbarWindow!.isVisible()) {
+					toolbarWindow!.hide();
+				} else {
+					toolbarWindow!.show();
+				}
+			},
+		});
+	}
+
+	menuTemplate.push({
+		label: "Salir",
+		click: () => {
+			if (app.dock) {
+				app.dock.hide();
+			}
+			app.quit();
+		},
+	});
+
+	tray.setContextMenu(Menu.buildFromTemplate(menuTemplate));
 }

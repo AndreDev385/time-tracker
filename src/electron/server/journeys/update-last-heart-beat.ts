@@ -2,6 +2,7 @@ import { net } from "electron";
 
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import logger from '../../lib/logger.js';
 
 export async function updateLastHeartBeat(): Promise<void> {
 	try {
@@ -14,6 +15,6 @@ export async function updateLastHeartBeat(): Promise<void> {
 			},
 		});
 	} catch (e) {
-		console.log("updateLastHeartBeat", e);
+		logger.error("updateLastHeartBeat", e);
 	}
 }

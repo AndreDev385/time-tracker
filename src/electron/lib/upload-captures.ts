@@ -6,9 +6,11 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { net } from "electron";
+import logger from './logger.js';
+import { BACKBLAZE_BUCKET_NAME, BACKBLAZE_REGION, BACKBLAZE_UPLOAD_URL_EXPIRY } from '../config.js';
 
-const BUCKET_NAME = "time-tracker-bucket";
-const REGION = "us-east-005";
+const BUCKET_NAME = BACKBLAZE_BUCKET_NAME;
+const REGION = BACKBLAZE_REGION;
 
 const s3Client = new S3Client({
 	region: REGION,
@@ -28,12 +30,11 @@ async function generateUploadUrl(file: File) {
 		ContentType: file.type,
 	});
 
-	return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+	return await getSignedUrl(s3Client, command, { expiresIn: BACKBLAZE_UPLOAD_URL_EXPIRY });
 }
 
 export async function testCredentials() {
 	await s3Client.send(new ListBucketsCommand({}));
-	console.log("Credentials are valid!");
 }
 
 function dataURLtoFile(dataurl: string, filename: string) {
@@ -81,6 +82,6 @@ export async function uploadFile(dataURL: string) {
 			return `https://f005.backblazeb2.com/file/${BUCKET_NAME}/${file.name}`;
 		}
 	} catch (e) {
-		console.log("upload-file", { e });
+		logger.error("upload-file", { e });
 	}
 }

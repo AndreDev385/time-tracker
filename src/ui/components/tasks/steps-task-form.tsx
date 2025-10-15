@@ -49,7 +49,8 @@ export function StepsTaskForm({
 				const workType = createTaskInfo.workTypes.find(
 					(wt) => formState.selectedWorkType === wt.id,
 				);
-				return workType?.taskTypes.includes(tp.id);
+				if (!workType || workType.taskTypes.length === 0) return true;
+				return workType.taskTypes.includes(tp.id);
 			}),
 			setSelected: (id: string) => {
 				// validate recordId
@@ -76,7 +77,7 @@ export function StepsTaskForm({
 				);
 				if (workType?.recordTypes.length === 0) {
 					handleSubmitTask({
-						userId: user.id,
+						userId: String(user.id),
 						projectId: formState.selectedProject as string,
 						workTypeId: formState.selectedWorkType as string,
 						recordId: formState.recordId,
@@ -104,7 +105,7 @@ export function StepsTaskForm({
 			setSelected: (id: string) => {
 				onFormStateChange("selectedRecordType", id);
 				handleSubmitTask({
-					userId: user.id,
+					userId: String(user.id),
 					projectId: formState.selectedProject as string,
 					workTypeId: formState.selectedWorkType as string,
 					recordId: formState.recordId,

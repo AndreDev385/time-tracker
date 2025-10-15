@@ -1,11 +1,12 @@
 import { BrowserWindow } from "electron";
 import { isDev } from "./lib/utils.js";
+import logger from './lib/logger.js';
 
 export function showWindow(window: BrowserWindow, app: Electron.App) {
 	if (window && !window.isDestroyed() && !window.isVisible()) {
 		window.show();
 	} else {
-		console.log("Toolbar window does not exist or was destroyed");
+		logger.warn("Toolbar window does not exist or was destroyed");
 	}
 
 	if (app.dock) {

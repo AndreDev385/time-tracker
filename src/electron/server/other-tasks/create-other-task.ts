@@ -1,6 +1,7 @@
 import { net } from "electron";
 import { readToken } from "../../lib/jwt.js";
 import { API_URL } from "../config.js";
+import logger from '../../lib/logger.js';
 
 export async function createOtherTask(
 	data: CreateOtherTaskData,
@@ -19,9 +20,11 @@ export async function createOtherTask(
 		const json = await response.json();
 
 		if (!response.ok) {
+			logger.error("create-other-task: error", { json });
 			return { success: false, error: "Ha ocurrido un error" };
 		}
 
+		logger.info("create-other-task: success", { otherTaskId: json.data.id });
 		return {
 			success: response.ok,
 			otherTask: {
@@ -29,7 +32,7 @@ export async function createOtherTask(
 			},
 		};
 	} catch (e) {
-		console.log("create-other-task", { e });
+		logger.error("create-other-task", { e });
 		return { success: false, error: "Ha ocurrido un error" };
 	}
 }

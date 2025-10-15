@@ -1,10 +1,11 @@
 import { net } from "electron";
 import { readToken } from "../lib/jwt.js";
 import { API_URL } from "./config.js";
+import logger from '../lib/logger.js';
 
 export async function saveUserCaptures(urls: string[]): Promise<void> {
 	try {
-		console.log({ urls }, "captures urls");
+		logger.info("captures urls", { urls });
 		const token = readToken()?.token;
 		const response = await net.fetch(`${API_URL}/user-captures`, {
 			method: "POST",
@@ -16,8 +17,8 @@ export async function saveUserCaptures(urls: string[]): Promise<void> {
 		});
 
 		const body = await response.json();
-		console.log({ body }, "User captures");
+		logger.info("User captures", { body });
 	} catch (e) {
-		console.log("save-user-capture", { e });
+		logger.error("save-user-capture", { e });
 	}
 }

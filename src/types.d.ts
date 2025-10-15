@@ -3,6 +3,12 @@ type ErrorResponse = { success: false; error: string };
 
 type UnsubscribeFunction = () => void;
 
+type FiltersPrimitives = {
+	field: string;
+	operator: string;
+	value: string;
+};
+
 // SignIn
 type SignInFormData = {
 	email: string;
@@ -37,7 +43,7 @@ type CreateOtherTaskData = {
 };
 
 type JWTTokenData = {
-	id: numer;
+	id: number;
 	name: string;
 	email: string;
 	role: string;
@@ -109,6 +115,42 @@ type AppSetting = {
 	value: string;
 };
 
+type AppState = {
+	activeJourney: Journey | null;
+	settings: {
+		idleTimeAllowed: number;
+		captureEvery: number;
+	};
+	intervals: {
+		idle: NodeJS.Timeout | null;
+		capture: NodeJS.Timeout | null;
+		heartbeat: NodeJS.Timeout | null;
+	};
+	windows: {
+		main: BrowserWindow | null;
+		toolbar: BrowserWindow | null;
+	};
+};
+
+type Effect =
+	| { type: 'sendIPC'; channel: string; webContents: Electron.WebContents; data: unknown }
+	| { type: 'startIdleMonitor' }
+	| { type: 'startCaptureMonitor' }
+	| { type: 'startHeartbeatInterval' }
+	| { type: 'clearIntervals' }
+	| { type: 'createMainWindow'; url: string; options: Electron.BrowserWindowConstructorOptions }
+	| { type: 'createToolbarWindow'; url: string; options: Electron.BrowserWindowConstructorOptions }
+	| { type: 'showWindow'; window: BrowserWindow; app: Electron.App }
+	| { type: 'focusWindow'; window: BrowserWindow }
+	| { type: 'hideWindow'; window: BrowserWindow }
+	| { type: 'quitApp' }
+	| { type: 'preventDefault'; event: Electron.Event }
+	| { type: 'endJourney'; journeyId: string }
+	| { type: 'loadSettings' }
+	| { type: 'checkJourney' }
+	| { type: 'createTray'; mainWindow: BrowserWindow; toolbarWindow: BrowserWindow; hasJourney: boolean }
+	| { type: 'startJourney' };
+
 interface Window {
 	electron: {
 		getAppVersion: () => Promise<string>;
@@ -123,6 +165,9 @@ interface Window {
 		>;
 		getMyTasks: () => Promise<
 			({ tasks: Task[] } & SuccessResponse) | ErrorResponse
+		>;
+		getTodaysJourneys: () => Promise<
+			({ journeys: Journey[] } & SuccessResponse) | ErrorResponse
 		>;
 
 		startJourney: () => void;
@@ -253,6 +298,9 @@ type EventPayloadMapping = {
 		({ user: JWTTokenData } & SuccessResponse) | ErrorResponse
 	>;
 	getMyTasks: Promise<({ tasks: Task[] } & SuccessResponse) | ErrorResponse>;
+	getTodaysJourneys: Promise<
+		({ journeys: Journey[] } & SuccessResponse) | ErrorResponse
+	>;
 
 	startJourney: undefined;
 	startJourneyResult: ({ journey: Journey } & SuccessResponse) | ErrorResponse;

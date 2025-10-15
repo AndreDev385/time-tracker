@@ -23,6 +23,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
 
 	checkToken: async () => await ipcInvoke("checkToken"),
 	getMyTasks: async () => await ipcInvoke("getMyTasks"),
+	getTodaysJourneys: async () => await ipcInvoke("getTodaysJourneys"),
 
 	startJourney: () => {
 		ipcSend("startJourney", undefined);
