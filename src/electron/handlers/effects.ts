@@ -5,7 +5,7 @@ import { app } from "electron";
 import { endJourney } from "../server/journeys/end-journey.js";
 import { loadAppSettings } from "../main.js";
 import { checkJourney } from "../main.js";
-import { startIdleMonitor, startCaptureMonitor, startHeartBeatInterval, endJourneyAndIntervals } from "../main.js";
+import { startIdleMonitor, startCaptureMonitor, startHeartBeatInterval, startJourneySyncInterval, endJourneyAndIntervals } from "../main.js";
 import { handleStartJourney } from "./ipc-handlers.js";
 
 export async function executeEffect(effect: Effect, appState: AppState) {
@@ -21,6 +21,9 @@ export async function executeEffect(effect: Effect, appState: AppState) {
 			break;
 		case 'startHeartbeatInterval':
 			appState.intervals.heartbeat = startHeartBeatInterval();
+			break;
+		case 'startJourneySyncInterval':
+			appState.intervals.journeySync = startJourneySyncInterval();
 			break;
 		case 'clearIntervals':
 			endJourneyAndIntervals();

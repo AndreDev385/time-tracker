@@ -33,6 +33,7 @@ function createInitialAppState(): AppState {
 			idle: null,
 			capture: null,
 			heartbeat: null,
+			journeySync: null,
 		},
 		windows: {
 			main: null,
@@ -194,11 +195,55 @@ export function startHeartBeatInterval(): NodeJS.Timeout {
 	return interval;
 }
 
+export function startJourneySyncInterval(): NodeJS.Timeout {
+	const interval = setInterval(async () => {
+		try {
+			const journeyResult = await getActualJourney();
+			if (!journeyResult.success) {
+				// Journey was ended by server, clean up local state
+				if (appState.intervals.heartbeat) {
+					clearInterval(appState.intervals.heartbeat);
+					appState.intervals.heartbeat = null;
+				}
+				if (appState.intervals.idle) {
+					clearInterval(appState.intervals.idle);
+					appState.intervals.idle = null;
+				}
+				if (appState.intervals.capture) {
+					clearInterval(appState.intervals.capture);
+					appState.intervals.capture = null;
+				}
+				if (appState.intervals.journeySync) {
+					clearInterval(appState.intervals.journeySync);
+					appState.intervals.journeySync = null;
+				}
+				appState.activeJourney = null;
+
+				// Notify UI about journey ending
+				if (appState.windows.toolbar?.webContents) {
+					appState.windows.toolbar.webContents.send('reloadToolbarData', { success: false, error: 'Journey ended by server' });
+				}
+				if (appState.windows.main?.webContents) {
+					const pausedTasks = await getMyTasks(["paused"]);
+					appState.windows.main.webContents.send('reloadPausedTasks', pausedTasks);
+				}
+			} else {
+				// Journey still active, update local state if needed
+				appState.activeJourney = journeyResult.journey;
+			}
+		} catch (error) {
+			console.error("Journey sync check failed", error);
+		}
+	}, 30000); // Check every 30 seconds
+	return interval;
+}
+
 export function endJourneyAndIntervals() {
 	appState.activeJourney = null;
 	if (appState.intervals.idle) clearInterval(appState.intervals.idle);
 	if (appState.intervals.capture) clearInterval(appState.intervals.capture);
 	if (appState.intervals.heartbeat) clearInterval(appState.intervals.heartbeat);
+	if (appState.intervals.journeySync) clearInterval(appState.intervals.journeySync);
 }
 
 function startIntervals() {

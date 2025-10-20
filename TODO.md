@@ -16,14 +16,14 @@
 
 # Pending bugs
 
-- [ ] Pausa por inactividad, cuando vuelves a iniciar jornada y tarea, cuenta
+- [x] Pausa por inactividad, cuando vuelves a iniciar jornada y tarea, cuenta
 el tiempo de la tarea pero no el de la jornada
 
 Tras esto al querer finalizar una jornada los controles del toolbar no hacen nada
 han tenido que parar la jornada, volverla a iniciar para poder cerrar la tarea
 
-- [ ] Al iniciar poner las ventanas en donde estaban al apagar el computador
+- [x] Al iniciar poner las ventanas en donde estaban al cerrar el programa, funciona solo para el toolbar
 
-- [ ] Que solo sea posible abrir una instancia de la app a la vez
+- [x] Que solo sea posible abrir una instancia de la app a la vez
 
-- [ ] Usar la app con un servidor y db de pruebas en windows
+- [x] Usar la app con un servidor y db de pruebas en windows

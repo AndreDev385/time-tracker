@@ -125,6 +125,7 @@ type AppState = {
 		idle: NodeJS.Timeout | null;
 		capture: NodeJS.Timeout | null;
 		heartbeat: NodeJS.Timeout | null;
+		journeySync: NodeJS.Timeout | null;
 	};
 	windows: {
 		main: BrowserWindow | null;
@@ -137,6 +138,7 @@ type Effect =
 	| { type: 'startIdleMonitor' }
 	| { type: 'startCaptureMonitor' }
 	| { type: 'startHeartbeatInterval' }
+	| { type: 'startJourneySyncInterval' }
 	| { type: 'clearIntervals' }
 	| { type: 'createMainWindow'; url: string; options: Electron.BrowserWindowConstructorOptions }
 	| { type: 'createToolbarWindow'; url: string; options: Electron.BrowserWindowConstructorOptions }

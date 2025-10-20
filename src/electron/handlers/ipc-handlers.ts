@@ -91,6 +91,7 @@ export async function handleStartJourney(state: AppState): Promise<{ newState: A
 			{ type: 'startIdleMonitor' },
 			{ type: 'startCaptureMonitor' },
 			{ type: 'startHeartbeatInterval' },
+			{ type: 'startJourneySyncInterval' },
 			{ type: 'sendIPC', channel: 'startJourneyResult', webContents: state.windows.main!.webContents, data: result },
 			{ type: 'sendIPC', channel: 'startJourneyResult', webContents: state.windows.toolbar!.webContents, data: result }
 		);

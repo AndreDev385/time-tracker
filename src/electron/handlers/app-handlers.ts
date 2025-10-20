@@ -99,7 +99,7 @@ export async function handleAppReady(state: AppState): Promise<{ newState: AppSt
 
 	const effects: Effect[] = [];
 	if (newState.activeJourney) {
-		effects.push({ type: 'startIdleMonitor' }, { type: 'startCaptureMonitor' }, { type: 'startHeartbeatInterval' });
+		effects.push({ type: 'startIdleMonitor' }, { type: 'startCaptureMonitor' }, { type: 'startHeartbeatInterval' }, { type: 'startJourneySyncInterval' });
 	}
 	effects.push({ type: 'createTray', mainWindow: newState.windows.main, toolbarWindow: newState.windows.toolbar, hasJourney: !!newState.activeJourney });
 
