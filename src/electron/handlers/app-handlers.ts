@@ -131,5 +131,6 @@ export async function handleAppWindowAllClosed(state: AppState): Promise<{ newSt
 		];
 		return { newState: { ...state, activeJourney: null }, effects };
 	}
-	return { newState: state, effects: [] };
+	const effects: Effect[] = [{ type: 'quitApp' }];
+	return { newState: state, effects };
 }

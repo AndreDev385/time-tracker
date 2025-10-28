@@ -1,6 +1,6 @@
 {
-	"appId": "com.example.time-tracker",
-	"productName": "time-tracker",
+	"appId": "com.gesttrack",
+	"productName": "gesttrack",
 	"files": ["dist-electron", "dist-react"],
 	"extraResources": ["dist-electron/preload.cjs", "src/assets/**"],
 	"icon": "appIcon.png",
@@ -15,5 +15,6 @@
 	},
 	"win": {
 		"target": ["nsis"]
-	}
+	},
+	"nsis": { "include": "build/installer.nsh" }
 }

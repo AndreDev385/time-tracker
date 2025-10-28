@@ -19,9 +19,11 @@ export function createTray(
 						app.dock.hide();
 					}
 				} else {
-					mainWindow.show();
-					if (app.dock) {
-						app.dock.show();
+					if (!mainWindow.isDestroyed()) {
+						mainWindow.show();
+						if (app.dock) {
+							app.dock.show();
+						}
 					}
 				}
 			},
@@ -36,7 +38,9 @@ export function createTray(
 				if (toolbarWindow!.isVisible()) {
 					toolbarWindow!.hide();
 				} else {
-					toolbarWindow!.show();
+					if (!toolbarWindow!.isDestroyed()) {
+						toolbarWindow!.show();
+					}
 				}
 			},
 		});

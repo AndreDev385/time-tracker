@@ -1,8 +1,8 @@
 {
-	"name": "time-tracker",
-	"description": "Time tracker app for measure productivity",
+	"name": "gesttrack",
+	"description": "gesttrack app for measure productivity",
 	"private": true,
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"type": "module",
 	"main": "dist-electron/main.js",
 	"scripts": {
